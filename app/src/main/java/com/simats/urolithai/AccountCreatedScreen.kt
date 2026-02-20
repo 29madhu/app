@@ -31,12 +31,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.simats.urolithai.ui.theme.UroLithAITheme
 
 @Composable
-fun AccountCreatedScreen(navController: NavController, role: String?) {
+fun AccountCreatedScreen(role: String?, onProceed: () -> Unit) {
     Scaffold(containerColor = Color.White) { paddingValues ->
         Column(
             modifier = Modifier
@@ -87,7 +85,7 @@ fun AccountCreatedScreen(navController: NavController, role: String?) {
             }
             Spacer(modifier = Modifier.weight(1f))
             Button(
-                onClick = { navController.navigate(Screen.Login.route) },
+                onClick = onProceed,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
@@ -105,6 +103,6 @@ fun AccountCreatedScreen(navController: NavController, role: String?) {
 @Composable
 fun AccountCreatedScreenPreview() {
     UroLithAITheme {
-        AccountCreatedScreen(rememberNavController(), role = "Doctor")
+        AccountCreatedScreen(role = "Patient", onProceed = {})
     }
 }

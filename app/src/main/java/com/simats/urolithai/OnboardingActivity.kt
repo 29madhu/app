@@ -1,5 +1,6 @@
 package com.simats.urolithai
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -21,9 +22,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -47,9 +53,17 @@ class OnboardingActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             UroLithAITheme {
-                OnboardingScreen {
+                OnboardingScreen(onOnboardingFinished = {
+                    // Set the flag to indicate that onboarding has been completed
+                    val sharedPref = getSharedPreferences("UroLithAIPrefs", Context.MODE_PRIVATE)
+                    with(sharedPref.edit()) {
+                        putBoolean("onboarding_completed", true)
+                        apply()
+                    }
+
                     startActivity(Intent(this, RoleSelectionActivity::class.java))
-                }
+                    finish()
+                })
             }
         }
     }
@@ -61,81 +75,79 @@ data class OnboardingPage(
     val description: String
 )
 
+val onboardingPages = listOf(
+    OnboardingPage(
+        imageRes = R.drawable.img_1,
+        title = "Urinary Stone Care Made Simple",
+        description = "Upload urinary scan reports and manage kidney stone cases securely with hospital-grade tools."
+    ),
+    OnboardingPage(
+        imageRes = R.drawable.img_2,
+        title = "AI-Assisted Stone Analysis",
+        description = "AI assists doctors in identifying stone type, size, and risk level from uploaded scans, helping faster clinical decisions."
+    ),
+    OnboardingPage(
+        imageRes = R.drawable.img_3,
+        title = "Smart Clinical Workflow",
+        description = "Review patient uploads, prescribe treatment, schedule appointments, and communicate securely — all in one platform."
+    )
+)
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun OnboardingScreen(onNavigateToMain: () -> Unit) {
-    val pages = listOf(
-        OnboardingPage(
-            imageRes = R.drawable.img_1,
-            title = "Urinary Stone Care Made Simple",
-            description = "Upload urinary scan reports and manage kidney stone cases securely with hospital-grade tools."
-        ),
-        OnboardingPage(
-            imageRes = R.drawable.img_2,
-            title = "AI-Assisted Stone Analysis",
-            description = "AI assists doctors in identifying stone type, size, and risk level from uploaded scans, helping faster clinical decisions."
-        ),
-        OnboardingPage(
-            imageRes = R.drawable.img_3,
-            title = "Smart Clinical Workflow",
-            description = "Review patient uploads, prescribe treatment, schedule appointments, and communicate securely — all in one platform."
-        )
-    )
-    val pagerState = rememberPagerState(pageCount = { pages.size })
+fun OnboardingScreen(onOnboardingFinished: () -> Unit) {
+    val pagerState = rememberPagerState { onboardingPages.size }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-            .padding(top = 32.dp, bottom = 32.dp, start = 16.dp, end = 16.dp)
-    ) {
-        TextButton(
-            onClick = onNavigateToMain,
-            modifier = Modifier.align(Alignment.TopEnd)
-        ) {
-            Text("Skip", color = Color.Gray, fontSize = 16.sp)
-        }
-
+    Scaffold(containerColor = Color.White) { paddingValues ->
         Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp)
         ) {
-            Spacer(modifier = Modifier.height(30.dp))
+            TextButton(
+                onClick = onOnboardingFinished,
+                modifier = Modifier.align(Alignment.End)
+            ) {
+                Text("Skip", color = Color.Gray)
+            }
 
             HorizontalPager(
                 state = pagerState,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
             ) { page ->
-                OnboardingPageContent(pages[page])
+                OnboardingPageContent(page = onboardingPages[page])
             }
 
             PagerIndicator(pagerState = pagerState)
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-            val coroutineScope = rememberCoroutineScope()
+            val scope = rememberCoroutineScope()
             Button(
                 onClick = {
-                    if (pagerState.currentPage < pages.size - 1) {
-                        coroutineScope.launch {
+                    if (pagerState.currentPage < onboardingPages.size - 1) {
+                        scope.launch {
                             pagerState.animateScrollToPage(pagerState.currentPage + 1)
                         }
                     } else {
-                        onNavigateToMain()
+                        onOnboardingFinished()
                     }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
                     .height(56.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6A1B9A))
             ) {
-                Text(
-                    text = if (pagerState.currentPage < pages.size - 1) "Next  >" else "Get Started",
-                    fontSize = 18.sp,
-                    color = Color.White
-                )
+                if (pagerState.currentPage == onboardingPages.size - 1) {
+                    Text("Get Started!", fontSize = 18.sp)
+                } else {
+                    Text("Next", fontSize = 18.sp)
+                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
+                }
             }
         }
     }
@@ -144,29 +156,30 @@ fun OnboardingScreen(onNavigateToMain: () -> Unit) {
 @Composable
 fun OnboardingPageContent(page: OnboardingPage) {
     Column(
+        modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-        modifier = Modifier.padding(top = 32.dp, start = 24.dp, end = 24.dp)
+        verticalArrangement = Arrangement.Center
     ) {
         Image(
             painter = painterResource(id = page.imageRes),
-            contentDescription = null,
+            contentDescription = page.title,
             modifier = Modifier.size(250.dp)
         )
-        Spacer(modifier = Modifier.height(48.dp))
+        Spacer(modifier = Modifier.height(32.dp))
         Text(
             text = page.title,
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
-            color = Color.Black
+            modifier = Modifier.padding(horizontal = 32.dp)
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = page.description,
             fontSize = 16.sp,
+            color = Color.Gray,
             textAlign = TextAlign.Center,
-            color = Color.Gray
+            modifier = Modifier.padding(horizontal = 24.dp)
         )
     }
 }
@@ -175,27 +188,26 @@ fun OnboardingPageContent(page: OnboardingPage) {
 @Composable
 fun PagerIndicator(pagerState: PagerState) {
     Row(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center
     ) {
         repeat(pagerState.pageCount) { iteration ->
             val color = if (pagerState.currentPage == iteration) Color(0xFF6A1B9A) else Color.LightGray
-            val width = if (pagerState.currentPage == iteration) 24.dp else 8.dp
             Box(
                 modifier = Modifier
-                    .size(width = width, height = 8.dp)
-                    .clip(RoundedCornerShape(4.dp))
+                    .padding(4.dp)
+                    .clip(CircleShape)
                     .background(color)
+                    .size(8.dp)
             )
         }
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Preview(showBackground = true)
 @Composable
 fun OnboardingScreenPreview() {
     UroLithAITheme {
-        OnboardingScreen {}
+        OnboardingScreen(onOnboardingFinished = {})
     }
 }

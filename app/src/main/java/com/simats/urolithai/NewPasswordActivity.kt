@@ -50,7 +50,6 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.compose.rememberNavController
 import com.simats.urolithai.ui.theme.UroLithAITheme
 
 class NewPasswordActivity : ComponentActivity() {
@@ -59,11 +58,10 @@ class NewPasswordActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             UroLithAITheme {
-                val navController = rememberNavController()
                 NewPasswordScreen(
                     onNavigateBack = { finish() },
                     onResetPassword = {
-                        navController.navigate(Screen.PasswordResetSuccess.route)
+                        startActivity(Intent(this, PasswordResetSuccessActivity::class.java))
                     }
                 )
             }

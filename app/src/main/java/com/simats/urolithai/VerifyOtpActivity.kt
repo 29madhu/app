@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -47,7 +48,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -77,9 +77,9 @@ class VerifyOtpActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VerifyOtpScreen(onNavigateBack: () -> Unit, onVerifyCode: () -> Unit) {
-    val otpDigits = remember { mutableStateListOf("", "", "", "", "", "") }
-    val focusRequesters = remember { List(6) { FocusRequester() } }
-    var ticks by remember { mutableStateOf(60) }
+    val otpDigits = remember { mutableStateListOf("", "", "", "") }
+    val focusRequesters = remember { List(4) { FocusRequester() } }
+    var ticks by remember { mutableStateOf(21) }
     var isTimerRunning by remember { mutableStateOf(true) }
 
     LaunchedEffect(key1 = isTimerRunning) {
@@ -114,10 +114,11 @@ fun VerifyOtpScreen(onNavigateBack: () -> Unit, onVerifyCode: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(64.dp))
-            Image(
-                painter = painterResource(id = R.drawable.img_10),
-                contentDescription = null,
-                modifier = Modifier.size(80.dp)
+            Icon(
+                imageVector = Icons.Outlined.Shield,
+                contentDescription = "Verify OTP",
+                modifier = Modifier.size(80.dp),
+                tint = Color(0xFF6A1B9A)
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text("Verify OTP", fontSize = 24.sp, fontWeight = FontWeight.Bold)
@@ -125,14 +126,14 @@ fun VerifyOtpScreen(onNavigateBack: () -> Unit, onVerifyCode: () -> Unit) {
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 otpDigits.forEachIndexed { index, value ->
                     OutlinedTextField(
                         value = value,
                         onValueChange = { newValue ->
                             if (newValue.length <= 1) {
                                 otpDigits[index] = newValue
-                                if (newValue.isNotEmpty() && index < 5) {
+                                if (newValue.isNotEmpty() && index < 3) {
                                     focusRequesters[index + 1].requestFocus()
                                 } else if (newValue.isEmpty() && index > 0) {
                                     focusRequesters[index - 1].requestFocus()
@@ -163,7 +164,7 @@ fun VerifyOtpScreen(onNavigateBack: () -> Unit, onVerifyCode: () -> Unit) {
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
                 if (ticks > 0) {

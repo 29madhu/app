@@ -49,13 +49,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import com.simats.urolithai.ui.theme.UroLithAITheme
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun OtpVerificationScreen(navController: NavController, onVerifyAndRegister: () -> Unit) {
+fun OtpVerificationScreen(onNavigateBack: () -> Unit, onVerifyAndRegister: () -> Unit) {
     val otpDigits = remember { mutableStateListOf("", "", "", "", "", "") }
     val focusRequesters = remember { List(6) { FocusRequester() } }
     var ticks by remember { mutableStateOf(60) }
@@ -72,7 +71,7 @@ fun OtpVerificationScreen(navController: NavController, onVerifyAndRegister: () 
             TopAppBar(
                 title = { Text("Create Account", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
+                    IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
@@ -174,6 +173,6 @@ fun OtpVerificationScreen(navController: NavController, onVerifyAndRegister: () 
 @Composable
 fun OtpVerificationScreenPreview() {
     UroLithAITheme {
-        OtpVerificationScreen(navController = rememberNavController(), onVerifyAndRegister = {})
+        OtpVerificationScreen(onNavigateBack = {}, onVerifyAndRegister = {})
     }
 }

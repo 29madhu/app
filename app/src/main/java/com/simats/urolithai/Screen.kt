@@ -52,4 +52,5 @@ sealed class Screen(val route: String) {
     object OtpVerification : Screen("otp_verification/{role}") {
         fun createRoute(role: String) = "otp_verification/$role"
     }
+    object FindDoctor : Screen("find_doctor")
 }

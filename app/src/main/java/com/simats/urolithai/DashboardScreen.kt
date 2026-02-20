@@ -118,7 +118,7 @@ fun DashboardScreen(navController: NavController) {
                             Text("No Doctor Selected", fontWeight = FontWeight.Bold)
                             Text("Select a doctor to upload reports", fontSize = 12.sp, color = Color.Gray)
                         }
-                        TextButton(onClick = { navController.navigate(Screen.FindSpecialist.route) }) {
+                        TextButton(onClick = { navController.navigate(Screen.FindDoctor.route) }) {
                             Text("Select")
                         }
                     }
@@ -139,7 +139,7 @@ fun DashboardScreen(navController: NavController) {
                             Text(selectedDoctor!!.name, fontWeight = FontWeight.Bold)
                             Text(selectedDoctor!!.specialization, fontSize = 12.sp, color = Color.Gray)
                         }
-                        TextButton(onClick = { navController.navigate(Screen.FindSpecialist.route) }) {
+                        TextButton(onClick = { navController.navigate(Screen.FindDoctor.route) }) {
                             Text("Change")
                         }
                     }
@@ -182,7 +182,7 @@ fun DashboardScreen(navController: NavController) {
             Spacer(modifier = Modifier.height(16.dp))
 
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                QuickActionCard("Find Doctor", R.drawable.doctor, modifier = Modifier.weight(1f), onClick = { navController.navigate(Screen.FindSpecialist.route) })
+                QuickActionCard("Find Doctor", R.drawable.doctor, modifier = Modifier.weight(1f), onClick = { navController.navigate(Screen.FindDoctor.route) })
                 QuickActionCard("Upload History", R.drawable.upload, modifier = Modifier.weight(1f), onClick = { navController.navigate(Screen.UploadHistory.route) })
             }
             Spacer(modifier = Modifier.height(16.dp))
