@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application
         android:allowBackup="true"
@@ -14,7 +13,6 @@
         <activity
             android:name=".SplashActivity"
             android:exported="true"
-            android:label="@string/app_name"
             android:theme="@style/Theme.UroLithAI">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -25,57 +23,50 @@
         <activity
             android:name=".OnboardingActivity"
             android:exported="false"
-            android:label="@string/app_name"
             android:theme="@style/Theme.UroLithAI" />
         <activity
             android:name=".RoleSelectionActivity"
             android:exported="false"
-            android:label="@string/app_name"
             android:theme="@style/Theme.UroLithAI" />
         <activity
             android:name=".CreateAccountActivity"
             android:exported="false"
-            android:label="@string/app_name"
             android:theme="@style/Theme.UroLithAI" />
         <activity
             android:name=".OtpVerificationActivity"
             android:exported="false"
-            android:label="@string/app_name"
             android:theme="@style/Theme.UroLithAI" />
         <activity
             android:name=".AccountCreatedActivity"
             android:exported="false"
-            android:label="@string/app_name"
             android:theme="@style/Theme.UroLithAI" />
         <activity
             android:name=".LoginActivity"
             android:exported="false"
-            android:label="@string/app_name"
             android:theme="@style/Theme.UroLithAI" />
         <activity
             android:name=".ResetPasswordActivity"
             android:exported="false"
-            android:label="@string/app_name"
             android:theme="@style/Theme.UroLithAI" />
         <activity
             android:name=".VerifyOtpActivity"
             android:exported="false"
-            android:label="@string/app_name"
             android:theme="@style/Theme.UroLithAI" />
         <activity
             android:name=".NewPasswordActivity"
             android:exported="false"
-            android:label="@string/app_name"
             android:theme="@style/Theme.UroLithAI" />
         <activity
             android:name=".PasswordResetSuccessActivity"
             android:exported="false"
-            android:label="@string/app_name"
             android:theme="@style/Theme.UroLithAI" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:label="@string/app_name"
+            android:theme="@style/Theme.UroLithAI" />
+        <activity
+            android:name=".FindDoctorActivity"
+            android:exported="false"
             android:theme="@style/Theme.UroLithAI" />
     </application>
 

@@ -110,5 +110,6 @@ fun AppNavigation(navController: NavHostController) {
         composable(Screen.MyPrescriptions.route) { MyPrescriptionsScreen() }
         composable(Screen.RateExperience.route) { RateExperienceScreen() }
         composable(Screen.ShareReport.route) { ShareReport() }
+        composable(Screen.FindDoctor.route) { FindDoctorScreen(navController) }
     }
 }
