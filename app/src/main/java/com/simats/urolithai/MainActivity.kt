@@ -41,7 +41,11 @@ class MainActivity : ComponentActivity() {
 
                             Screen.DoctorDetails.route,
                             Screen.ReportDetails.route,
-                            Screen.ReportSent.route
+                            Screen.ReportSent.route,
+                            Screen.TermsAndConditions.route,
+                            Screen.PrivacyPolicy.route,
+                            Screen.HelpAndFaqs.route,
+                            Screen.AboutApp.route
                         )
                         if (currentRoute !in screensWithoutBottomBar) {
                             BottomNavigationBar(navController)
@@ -60,13 +64,17 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun AppNavigation(navController: NavHostController) {
     val context = LocalContext.current
-    // Navigation graph for the main part of the app, starting with Login
+    // Navigation graph for the main part of the aoo, starting with Login
     NavHost(navController = navController, startDestination = Screen.Login.route) {
         composable(Screen.Login.route) { 
             LoginScreen(
-                onLoginSuccess = { 
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Login.route) { inclusive = true }
+                onLoginSuccess = { role ->
+                    if (role == "Doctor") {
+                        context.startActivity(Intent(context, DoctorActivity::class.java))
+                    } else {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(Screen.Login.route) { inclusive = true }
+                        }
                     }
                 },
                 onForgotPassword = { context.startActivity(Intent(context, ResetPasswordActivity::class.java)) }
@@ -77,7 +85,7 @@ fun AppNavigation(navController: NavHostController) {
         // Main dashboard screens
         composable(Screen.Home.route) { DashboardScreen(navController) }
         composable(Screen.Reports.route) { MyReportsScreen(navController) }
-        composable(Screen.Appointments.route) { AppointmentsScreen(navController) }
+        composable(Screen.Appointments.route) { BookAppointmentScreen(navController) }
         composable(Screen.Settings.route) { SettingsScreen(navController) }
 
         // Feature screens
@@ -103,13 +111,18 @@ fun AppNavigation(navController: NavHostController) {
         composable(Screen.DoctorProfile.route) { backStackEntry ->
             DoctorProfileScreen(navController, backStackEntry.arguments?.getString("specialistInitials"))
         }
-        composable(Screen.Notifications.route) { NotificationsScreen() }
+        composable(Screen.Notifications.route) { NotificationsScreen(navController) }
         composable(Screen.FindSpecialist.route) { FindDoctorScreen(navController) }
-        composable(Screen.UploadHistory.route) { UploadHistoryScreen() }
-        composable(Screen.DietPrecautions.route) { DietPrecautionsScreen() }
-        composable(Screen.MyPrescriptions.route) { MyPrescriptionsScreen() }
+        composable(Screen.UploadHistory.route) { UploadHistoryScreen(navController) }
+        composable(Screen.DietPrecautions.route) { DietPrecautionsScreen(navController) }
+        composable(Screen.MyPrescriptions.route) { MyPrescriptionsScreen(navController) }
         composable(Screen.RateExperience.route) { RateExperienceScreen() }
-        composable(Screen.ShareReport.route) { ShareReport() }
+        composable(Screen.ShareReport.route) { ShareReportScreen(navController) }
         composable(Screen.FindDoctor.route) { FindDoctorScreen(navController) }
+        composable(Screen.MyProfile.route) { MyProfileScreen(navController) }
+        composable(Screen.TermsAndConditions.route) { TermsAndConditionsScreen(navController) }
+        composable(Screen.PrivacyPolicy.route) { PrivacyPolicyScreen(navController) }
+        composable(Screen.HelpAndFaqs.route) { HelpAndFaqsScreen(navController) }
+        composable(Screen.AboutApp.route) { AboutAppScreen(navController) }
     }
 }

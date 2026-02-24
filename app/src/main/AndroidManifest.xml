@@ -68,6 +68,10 @@
             android:name=".FindDoctorActivity"
             android:exported="false"
             android:theme="@style/Theme.UroLithAI" />
+        <activity
+            android:name=".DoctorActivity"
+            android:exported="false"
+            android:theme="@style/Theme.UroLithAI" />
     </application>
 
 </manifest>

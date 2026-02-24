@@ -101,7 +101,10 @@ fun FindDoctorScreen(navController: NavController) {
             items(doctorList) { doctor ->
                 DoctorListItem(
                     doctor = doctor, 
-                    onSelectDoctor = { navController.navigate(Screen.BookAppointment.route) },
+                    onSelectDoctor = { 
+                        navController.previousBackStackEntry?.savedStateHandle?.set("selectedDoctorInitials", doctor.initials)
+                        navController.popBackStack()
+                    },
                     onViewProfile = { navController.navigate(Screen.DoctorProfile.createRoute(doctor.name)) }
                 )
             }

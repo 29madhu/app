@@ -53,4 +53,9 @@ sealed class Screen(val route: String) {
         fun createRoute(role: String) = "otp_verification/$role"
     }
     object FindDoctor : Screen("find_doctor")
+    object MyProfile : Screen("my_profile")
+    object TermsAndConditions : Screen("terms_and_conditions")
+    object PrivacyPolicy : Screen("privacy_policy")
+    object HelpAndFaqs : Screen("help_and_faqs")
+    object AboutApp : Screen("about_app")
 }

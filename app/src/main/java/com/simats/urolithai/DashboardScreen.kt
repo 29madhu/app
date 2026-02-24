@@ -55,14 +55,14 @@ import androidx.navigation.NavController
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(navController: NavController) {
-    var selectedDoctor by remember { mutableStateOf<Specialist?>(null) }
+    var selectedDoctor by remember { mutableStateOf<Doctor?>(null) }
     val navBackStackEntry = navController.currentBackStackEntry
     val selectedDoctorInitials = navBackStackEntry?.savedStateHandle?.get<String>("selectedDoctorInitials")
     val context = LocalContext.current
 
     LaunchedEffect(selectedDoctorInitials) {
         if (selectedDoctorInitials != null) {
-            selectedDoctor = specialists.find { it.initials == selectedDoctorInitials }
+            selectedDoctor = doctorList.find { it.initials == selectedDoctorInitials }
             Toast.makeText(context, "Doctor Selected", Toast.LENGTH_SHORT).show()
             navBackStackEntry.savedStateHandle.remove<String>("selectedDoctorInitials")
         }
@@ -81,13 +81,15 @@ fun DashboardScreen(navController: NavController) {
                     IconButton(onClick = { navController.navigate(Screen.Notifications.route) }) {
                         Icon(Icons.Default.Notifications, contentDescription = "Notifications")
                     }
-                    Image(
-                        painter = painterResource(id = R.drawable.img_4),
-                        contentDescription = "User Profile",
-                        modifier = Modifier
-                            .size(32.dp)
-                            .clip(CircleShape)
-                    )
+                    IconButton(onClick = { navController.navigate(Screen.MyProfile.route) }) {
+                        Image(
+                            painter = painterResource(id = R.drawable.img_4),
+                            contentDescription = "User Profile",
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(CircleShape)
+                        )
+                    }
                     Spacer(modifier = Modifier.width(8.dp))
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
@@ -173,7 +175,7 @@ fun DashboardScreen(navController: NavController) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 StatusCard("Pending", "2", Color(0xFFFFF3E0), Color(0xFFFFA000), modifier = Modifier.weight(1f))
                 StatusCard("Approved", "1", Color(0xFFE8F5E9), Color(0xFF388E3C), modifier = Modifier.weight(1f))
-                StatusCard("Next Appt", "15 Aug", Color(0xFFE3F2FD), Color(0xFF1976D2), modifier = Modifier.weight(1f))
+                StatusCard("Next Appt", "15 Aug", Color(0xFFE3F2FD), Color(0xFF1976D2), modifier = Modifier.weight(1f), onClick = { navController.navigate(Screen.BookAppointment.route) })
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -188,7 +190,7 @@ fun DashboardScreen(navController: NavController) {
             Spacer(modifier = Modifier.height(16.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 QuickActionCard("Diet & Tips", R.drawable.favourite, modifier = Modifier.weight(1f), onClick = { navController.navigate(Screen.DietPrecautions.route) })
-                QuickActionCard("Prescriptions", R.drawable.medicine, modifier = Modifier.weight(1f), onClick = { navController.navigate(Screen.MyPrescriptions.route) })
+                QuickActionCard("Appointments", R.drawable.timer, modifier = Modifier.weight(1f), onClick = { navController.navigate(Screen.BookAppointment.route) })
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -224,9 +226,9 @@ fun DashboardScreen(navController: NavController) {
 }
 
 @Composable
-fun StatusCard(title: String, value: String, backgroundColor: Color, textColor: Color, modifier: Modifier = Modifier) {
+fun StatusCard(title: String, value: String, backgroundColor: Color, textColor: Color, modifier: Modifier = Modifier, onClick: (() -> Unit)? = null) {
     Card(
-        modifier = modifier,
+        modifier = modifier.then(if(onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = backgroundColor)
     ) {

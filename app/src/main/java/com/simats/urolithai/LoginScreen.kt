@@ -49,7 +49,7 @@ import com.simats.urolithai.ui.theme.UroLithAITheme
 
 @Composable
 fun LoginScreen(
-    onLoginSuccess: () -> Unit,
+    onLoginSuccess: (String) -> Unit,
     onForgotPassword: () -> Unit,
 ) {
     var selectedRole by remember { mutableStateOf("Patient") }
@@ -95,7 +95,7 @@ fun LoginScreen(
                     OutlinedTextField(value = password, onValueChange = { password = it }, label = { Text("Password") }, modifier = Modifier.fillMaxWidth(), visualTransformation = PasswordVisualTransformation(), colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xFF6A1B9A)))
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(
-                        onClick = onLoginSuccess,
+                        onClick = { onLoginSuccess(selectedRole) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp),

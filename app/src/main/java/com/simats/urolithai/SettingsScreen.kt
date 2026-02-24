@@ -2,6 +2,7 @@ package com.simats.urolithai
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -23,17 +25,24 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Phone
 import androidx.compose.material.icons.outlined.Shield
+import androidx.compose.material.icons.outlined.Warning
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,6 +52,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.simats.urolithai.ui.theme.UroLithAITheme
@@ -50,6 +60,8 @@ import com.simats.urolithai.ui.theme.UroLithAITheme
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(navController: NavController) {
+    var showLogoutDialog by remember { mutableStateOf(false) }
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -75,9 +87,71 @@ fun SettingsScreen(navController: NavController) {
         ) {
             ProfileCard()
             Spacer(modifier = Modifier.height(24.dp))
-            SettingsOptions()
+            SettingsOptions(navController)
             Spacer(modifier = Modifier.weight(1f))
-            LogoutButton()
+            LogoutButton { showLogoutDialog = true }
+        }
+
+        if (showLogoutDialog) {
+            LogoutConfirmationDialog(
+                onConfirm = {
+                    showLogoutDialog = false
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(navController.graph.id) {
+                            inclusive = true
+                        }
+                    }
+                },
+                onDismiss = {
+                    showLogoutDialog = false
+                    navController.navigate(Screen.Home.route)
+                }
+            )
+        }
+    }
+}
+
+@Composable
+fun LogoutConfirmationDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Warning,
+                    contentDescription = "Confirm Logout",
+                    tint = Color.Red,
+                    modifier = Modifier.size(48.dp)
+                )
+                Text("Confirm Logout", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                Text("Are you sure you want to logout?", color = Color.Gray)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Cancel")
+                    }
+                    androidx.compose.material3.Button(
+                        onClick = onConfirm,
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Logout")
+                    }
+                }
+            }
         }
     }
 }
@@ -122,7 +196,7 @@ private fun ProfileCard() {
 }
 
 @Composable
-private fun SettingsOptions() {
+private fun SettingsOptions(navController: NavController) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
@@ -131,24 +205,29 @@ private fun SettingsOptions() {
         Column(modifier = Modifier.padding(vertical = 8.dp)) {
             SettingsItem(
                 imageVector = Icons.Outlined.Edit,
-                text = "Edit Profile"
+                text = "Edit Profile",
+                onClick = { navController.navigate(Screen.MyProfile.route) }
             )
             SettingsItem(
                 imageVector = Icons.Outlined.Description,
-                text = "Terms & Conditions"
+                text = "Terms & Conditions",
+                onClick = { navController.navigate(Screen.TermsAndConditions.route) }
             )
             SettingsItem(
                 imageVector = Icons.Outlined.Shield,
-                text = "Privacy Policy"
+                text = "Privacy Policy",
+                onClick = { navController.navigate(Screen.PrivacyPolicy.route) }
             )
             // Replaced deprecated HelpOutline with auto-mirrored version
             SettingsItem(
                 imageVector = Icons.AutoMirrored.Outlined.HelpOutline,
-                text = "Help & FAQs"
+                text = "Help & FAQs",
+                onClick = { navController.navigate(Screen.HelpAndFaqs.route) }
             )
             SettingsItem(
                 imageVector = Icons.Outlined.Info,
-                text = "About App"
+                text = "About App",
+                onClick = { navController.navigate(Screen.AboutApp.route) }
             )
         }
     }
@@ -176,8 +255,8 @@ private fun SettingsItem(
 }
 
 @Composable
-private fun LogoutButton() {
-    TextButton(onClick = { /* Handle logout */ }) {
+private fun LogoutButton(onClick: () -> Unit) {
+    TextButton(onClick = onClick) {
         Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = "Logout", tint = Color.Red)
         Spacer(modifier = Modifier.width(8.dp))
         Text("Logout", color = Color.Red, fontSize = 16.sp)
