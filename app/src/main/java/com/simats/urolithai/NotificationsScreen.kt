@@ -69,7 +69,7 @@ fun NotificationsScreen(navController: NavController) {
                         )
                     }
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color(0xFFF8F5FA))
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFFF8F5FA))
             )
         },
         containerColor = Color(0xFFF8F5FA)

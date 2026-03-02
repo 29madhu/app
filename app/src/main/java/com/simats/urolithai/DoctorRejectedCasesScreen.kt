@@ -1,3 +1,4 @@
+
 package com.simats.urolithai
 
 import androidx.compose.foundation.background
@@ -46,12 +47,12 @@ import com.simats.urolithai.ui.theme.UroLithAITheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DoctorApprovedCasesScreen(navController: NavController) {
-    var selectedTabIndex by remember { mutableStateOf(1) }
+fun DoctorRejectedCasesScreen(navController: NavController) {
+    var selectedTabIndex by remember { mutableStateOf(2) }
     val tabs = listOf("Pending", "Approved", "Rejected", "Follow-up")
 
     val filteredCases = allCases.filter {
-        it.status.equals(tabs[selectedTabIndex], ignoreCase = true)
+        it.status.equals("Rejected", ignoreCase = true)
     }
 
     Scaffold(
@@ -97,7 +98,7 @@ fun DoctorApprovedCasesScreen(navController: NavController) {
                     ) {
                         val iconModifier = Modifier.size(16.dp)
                         val tint = if (isSelected) Color.White else unselectedColor
-                        
+
                         when (title) {
                             "Pending" -> Icon(painterResource(id = R.drawable.timer), contentDescription = title, modifier = iconModifier, tint = tint)
                             "Approved" -> Icon(painterResource(id = R.drawable.img_15), contentDescription = title, modifier = iconModifier, tint = tint)
@@ -122,7 +123,7 @@ fun DoctorApprovedCasesScreen(navController: NavController) {
                 contentPadding = PaddingValues(top = 16.dp, bottom = 16.dp)
             ) {
                 items(filteredCases) { case ->
-                    ApprovedCaseItemCard(navController = navController, case = case)
+                    RejectedCaseItemCard(navController = navController, case = case)
                 }
             }
         }
@@ -130,19 +131,10 @@ fun DoctorApprovedCasesScreen(navController: NavController) {
 }
 
 @Composable
-fun ApprovedCaseItemCard(navController: NavController, case: Case) {
-    val statusColor = when (case.status.lowercase()) {
-        "approved" -> Color(0xFF388E3C)
-        "pending" -> Color(0xFFFFA000)
-        "rejected" -> Color(0xFFD32F2F)
-        else -> Color.Gray
-    }
-    val statusBackgroundColor = when (case.status.lowercase()) {
-        "approved" -> Color(0xFFE8F5E9)
-        "pending" -> Color(0xFFFFF8E1)
-        "rejected" -> Color(0xFFFFEBEE)
-        else -> Color(0xFFF5F5F5)
-    }
+fun RejectedCaseItemCard(navController: NavController, case: Case) {
+    val statusColor = Color(0xFFD32F2F)
+    val statusBackgroundColor = Color(0xFFFFEBEE)
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -163,7 +155,7 @@ fun ApprovedCaseItemCard(navController: NavController, case: Case) {
                     Text(case.id, color = Color.Gray, fontSize = 12.sp)
                 }
                 Text(
-                    text = case.status.lowercase(),
+                    text = "rejected",
                     color = statusColor,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
@@ -189,7 +181,7 @@ fun ApprovedCaseItemCard(navController: NavController, case: Case) {
                 }
             }
             Button(
-                onClick = { navController.navigate("patient_history") },
+                onClick = { navController.navigate("rejected_case_reason/${case.id}") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
@@ -202,11 +194,10 @@ fun ApprovedCaseItemCard(navController: NavController, case: Case) {
     }
 }
 
-
 @Preview(showBackground = true)
 @Composable
-fun DoctorApprovedCasesScreenPreview() {
+fun DoctorRejectedCasesScreenPreview() {
     UroLithAITheme {
-        DoctorApprovedCasesScreen(rememberNavController())
+        DoctorRejectedCasesScreen(rememberNavController())
     }
 }

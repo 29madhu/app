@@ -1,5 +1,16 @@
 package com.simats.urolithai
 
+data class Case(val id: String, val title: String, val type: String, val date: String, val status: String)
+
+val allCases = listOf(
+    Case("RPT-001", "Ultrasound Left Kidney", "Ultrasound", "12 Jan 2025", "Approved"),
+    Case("RPT-002", "CT Scan Bilateral", "CT Scan", "08 Jan 2025", "Approved"),
+    Case("RPT-004", "Ultrasound Follow-up", "Ultrasound", "15 Jan 2025", "Approved"),
+    Case("RPT-003", "KUB X-Ray", "X-Ray", "14 Jan 2025", "Pending"),
+    Case("RPT-005", "MRI Scan", "MRI", "16 Jan 2025", "Rejected"),
+    Case("RPT-006", "Ultrasound Follow-up 2", "Ultrasound", "18 Jan 2025", "Follow-up")
+)
+
 data class Upload(
     val id: String,
     val name: String,
@@ -15,6 +26,7 @@ val uploads = listOf(
     Upload("rpt-003", "X-Ray KUB", "01 Jan 2025", "Dr. Amit Patel", "rejected", R.drawable.wrong),
     Upload("rpt-004", "Ultrasound Follow-up", "15 Jan 2025", "Dr. Priya Sharma", "pending", R.drawable.timer)
 )
+
 
 data class ReportDetails(
     val id: String,

@@ -27,13 +27,16 @@ class DoctorActivity : ComponentActivity() {
                     NavHost(navController = navController, startDestination = "dashboard") {
                         composable("dashboard") { DoctorDashboardScreen(navController) }
                         composable(
-                            "cases/{initialTabIndex}",
-                            arguments = listOf(navArgument("initialTabIndex") { type = NavType.IntType })
+                            "cases/{status}",
+                            arguments = listOf(navArgument("status") { type = NavType.StringType })
                         ) { backStackEntry ->
-                            DoctorCasesScreen(navController, backStackEntry.arguments?.getInt("initialTabIndex"))
+                            DoctorCasesScreen(navController, backStackEntry.arguments?.getString("status") ?: "Approved")
                         }
                         composable("review_case/{caseId}") { backStackEntry ->
                             DoctorReviewCaseScreen(navController, backStackEntry.arguments?.getString("caseId"))
+                        }
+                        composable("rejected_case_reason/{caseId}") { backStackEntry ->
+                            DoctorRejectedCaseReasonScreen(navController, backStackEntry.arguments?.getString("caseId"))
                         }
                         composable("ai_analysis/{caseId}") { backStackEntry ->
                             DoctorAiAnalysisScreen(navController, backStackEntry.arguments?.getString("caseId"))
@@ -42,6 +45,17 @@ class DoctorActivity : ComponentActivity() {
                         composable("preview_prescription") { PreviewPrescriptionScreen(navController) }
                         composable("prescription_sent") { PrescriptionSentScreen(navController) }
                         composable("patient_history") { PatientHistoryScreen(navController) }
+                        composable("messages") { DoctorMessagesScreen(navController) }
+                        composable("appointments") { AppointmentsScreen(navController) }
+                        composable("individual_chat") { DoctorIndividualChatScreen(navController) }
+                        // video call screen removed; use external dialer or dedicated implementation
+                        composable("analytics") { AnalyticsScreen(navController) }
+                        composable("settings") { DoctorSettingsScreen(navController) }
+                        composable("doctorEditProfile") { DoctorEditProfileScreen(navController) }
+                        composable("doctorHelpAndFaqs") { DoctorHelpAndFaqsScreen(navController) }
+                        composable("doctorAppInfo") { DoctorAppInfoScreen(navController) }
+                        composable("logout") { DoctorLogoutScreen(navController) }
+                        composable("doctorNotifications") { DoctorNotificationsScreen(navController) }
                     }
                 }
             }

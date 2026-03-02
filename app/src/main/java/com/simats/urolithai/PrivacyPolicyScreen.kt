@@ -54,7 +54,7 @@ fun PrivacyPolicyScreen(navController: NavController) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color(0xFFF8F5FA))
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFFF8F5FA))
             )
         },
         bottomBar = {

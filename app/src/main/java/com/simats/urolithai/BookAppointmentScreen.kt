@@ -73,7 +73,7 @@ fun BookAppointmentScreen(navController: NavController) {
                         Icon(painterResource(id = R.drawable.call), contentDescription = "Call")
                     }
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
         },
         bottomBar = {

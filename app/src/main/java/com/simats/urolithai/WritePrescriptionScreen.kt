@@ -60,7 +60,7 @@ fun WritePrescriptionScreen(navController: NavController) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
         },
         bottomBar = {
@@ -72,9 +72,9 @@ fun WritePrescriptionScreen(navController: NavController) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 TextButton(onClick = { /*TODO*/ }) {
-                    Icon(painter = painterResource(id = R.drawable.reports), contentDescription = "Save Draft", tint = Color(0xFF6A1B9A))
+                    Icon(painter = painterResource(id = R.drawable.img_22), contentDescription = "Save Draft")
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Save Draft", color = Color(0xFF6A1B9A))
+                    Text("Save Draft", color = Color.Gray)
                 }
                 Button(
                     onClick = { navController.navigate("preview_prescription") },
@@ -104,8 +104,7 @@ fun WritePrescriptionScreen(navController: NavController) {
                 value = patientName,
                 onValueChange = { patientName = it },
                 placeholder = { Text("Search patient...") },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
+                modifier = Modifier.fillMaxWidth()
             )
 
             // Medications
@@ -123,23 +122,20 @@ fun WritePrescriptionScreen(navController: NavController) {
                 value = medicineName,
                 onValueChange = { medicineName = it },
                 placeholder = { Text("Medicine Name") },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
+                modifier = Modifier.fillMaxWidth()
             )
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 OutlinedTextField(
                     value = dosage,
                     onValueChange = { dosage = it },
                     placeholder = { Text("Dosage (e.g. 500mg)") },
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(12.dp)
+                    modifier = Modifier.weight(1f)
                 )
                 OutlinedTextField(
                     value = frequency,
                     onValueChange = { frequency = it },
                     placeholder = { Text("Frequency (e.g. 1-0-1)") },
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(12.dp)
+                    modifier = Modifier.weight(1f)
                 )
             }
 
@@ -151,8 +147,7 @@ fun WritePrescriptionScreen(navController: NavController) {
                 placeholder = { Text("Enter dietary advice or special instructions...") },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(120.dp),
-                shape = RoundedCornerShape(12.dp)
+                    .height(120.dp)
             )
         }
     }

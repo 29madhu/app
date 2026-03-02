@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Chat
+import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Analytics
@@ -56,6 +57,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.simats.urolithai.ui.theme.UroLithAITheme
 
@@ -85,12 +88,12 @@ fun DoctorDashboardScreen(navController: NavController) {
             )
 
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                SummaryCard("Pending Uploads", "3", R.drawable.timer, Color(0xFFFFA000), modifier = Modifier.weight(1f).clickable { navController.navigate("cases/0") })
-                SummaryCard("Approved Reports", "128", R.drawable.img_15, Color(0xFF388E3C), modifier = Modifier.weight(1f).clickable { navController.navigate("cases/1") })
+                SummaryCard("Pending Uploads", "3", R.drawable.timer, Color(0xFFFFA000), modifier = Modifier.weight(1f).clickable { navController.navigate("cases/Pending") })
+                SummaryCard("Approved Reports", "128", R.drawable.img_15, Color(0xFF388E3C), modifier = Modifier.weight(1f).clickable { navController.navigate("cases/Approved") })
             }
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                SummaryCard("Rejected Cases", "12", R.drawable.wrong, Color(0xFFD32F2F), modifier = Modifier.weight(1f).clickable { navController.navigate("cases/Rejected") })
                 SummaryCard("Follow-ups Today", "5", R.drawable.book, Color(0xFF2979FF), modifier = Modifier.weight(1f))
-                SummaryCard("Total Cases", "142", R.drawable.img_18, Color(0xFF6A1B9A), modifier = Modifier.weight(1f))
             }
 
             RecentActivitySection()
@@ -111,7 +114,7 @@ fun DoctorDashboardTopBar(navController: NavController) {
         },
         actions = {
             BadgedBox(badge = { Badge { Text("3") } }) {
-                IconButton(onClick = { /*TODO*/ }) {
+                IconButton(onClick = { navController.navigate("doctorNotifications") }) {
                     Icon(Icons.Default.Notifications, contentDescription = "Notifications")
                 }
             }
@@ -173,10 +176,10 @@ fun QuickActionsSection(navController: NavController) {
         Text("Quick Actions", fontWeight = FontWeight.Bold, fontSize = 18.sp)
         Spacer(modifier = Modifier.height(16.dp))
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
-            QuickActionItem(icon = R.drawable.img_16, label = "AI Analysis", onClick = { navController.navigate("cases/0") })
-            QuickActionItem(icon = R.drawable.medicine, label = "Write Rx")
-            QuickActionItem(icon = R.drawable.reports, label = "History", onClick = { navController.navigate("cases/0") })
-            QuickActionItem(icon = Icons.Outlined.Analytics, label = "Analytics")
+            QuickActionItem(icon = R.drawable.img_16, label = "AI Analysis", onClick = { navController.navigate("cases/Pending") })
+            QuickActionItem(icon = R.drawable.medicine, label = "Write Rx", onClick = { navController.navigate("write_prescription") })
+            QuickActionItem(icon = R.drawable.reports, label = "History", onClick = { navController.navigate("cases/Approved") })
+            QuickActionItem(icon = Icons.Outlined.Analytics, label = "Analytics", onClick = { navController.navigate("analytics") })
         }
     }
 }
@@ -198,12 +201,25 @@ fun QuickActionItem(icon: Any, label: String, onClick: () -> Unit = {}) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DoctorBottomNavigationBar(navController: NavController) {
-    var selectedItem by remember { mutableStateOf(0) }
-    val items = listOf("Home", "Cases", "Appts", "Chat", "Settings")
+    val items = listOf("Home", "Cases", "Appts", "Chat", "Settings", "Logout")
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
 
     NavigationBar(containerColor = Color.White) {
-        items.forEachIndexed { index, screen ->
-            val isSelected = selectedItem == index
+        items.forEach { screen ->
+            val route = when (screen) {
+                "Home" -> "dashboard"
+                "Cases" -> "cases/Approved"
+                "Appts" -> "appointments"
+                "Chat" -> "messages"
+                "Settings" -> "settings"
+                "Logout" -> "logout"
+                else -> "dashboard"
+            }
+            val isSelected = when (screen) {
+                "Cases" -> currentRoute?.startsWith("cases") == true
+                else -> currentRoute == route
+            }
             NavigationBarItem(
                 icon = {
                     BadgedBox(badge = {
@@ -216,16 +232,25 @@ fun DoctorBottomNavigationBar(navController: NavController) {
                             "Appts" -> Icon(painterResource(id = R.drawable.book), contentDescription = screen)
                             "Chat" -> Icon(Icons.AutoMirrored.Outlined.Chat, contentDescription = screen)
                             "Settings" -> Icon(Icons.Outlined.Settings, contentDescription = screen)
+                            "Logout" -> Icon(Icons.AutoMirrored.Outlined.Logout, contentDescription = screen)
                         }
                     }
                 },
                 label = { Text(screen) },
                 selected = isSelected,
                 onClick = { 
-                    selectedItem = index
-                    when (screen) {
-                        "Cases" -> navController.navigate("cases/0")
-                        else -> navController.navigate("dashboard")
+                    if (!isSelected) {
+                        if (screen == "Logout") {
+                            navController.navigate("logout")
+                        } else {
+                            navController.navigate(route) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
                     }
                 },
                 colors = NavigationBarItemDefaults.colors(

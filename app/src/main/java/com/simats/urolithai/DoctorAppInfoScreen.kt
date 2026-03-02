@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -31,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -40,7 +40,7 @@ import com.simats.urolithai.ui.theme.UroLithAITheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AboutAppScreen(navController: NavController) {
+fun DoctorAppInfoScreen(navController: NavController) {
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -51,114 +51,114 @@ fun AboutAppScreen(navController: NavController) {
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White
+                    containerColor = Color(0xFFF7F2FA)
                 )
             )
         },
-        bottomBar = { DoctorBottomNavigationBar(navController) }
-    ) {
+        bottomBar = { DoctorBottomNavigationBar(navController = navController) }
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(it)
+                .background(Color(0xFFF7F2FA))
+                .padding(paddingValues)
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            AboutAppLogo()
+            Spacer(modifier = Modifier.height(16.dp))
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(Color(0xFF6A1B9A)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "U",
+                    color = Color.White,
+                    fontSize = 48.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
             Spacer(modifier = Modifier.height(16.dp))
             Text("UroLith AI", fontSize = 24.sp, fontWeight = FontWeight.Bold)
-            Text("v1.0.2 (Build 2025.02)", color = Color.Gray)
-            Text("Doctor Portal", color = Color.Gray)
+            Text("v1.0.2 (Build 2023.01)", fontSize = 14.sp, color = Color.Gray)
+            Text("Doctor Portal", fontSize = 14.sp, color = Color.Gray)
             Spacer(modifier = Modifier.height(24.dp))
-            AboutAppComplianceTags()
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                StatusChip("Indore-T Test")
+                StatusChip("ABD-203")
+                StatusChip("HIPAA-aligned")
+            }
             Spacer(modifier = Modifier.height(24.dp))
-            AboutAppSystemStatusCard()
+            SystemStatusCard()
             Spacer(modifier = Modifier.weight(1f))
-            Text("Made in India 🇮🇳", color = Color.Gray)
+            Text("Made in India 🇮🇳", fontSize = 12.sp, color = Color.Gray)
         }
     }
 }
 
 @Composable
-fun AboutAppLogo() {
+fun StatusChip(text: String) {
     Box(
         modifier = Modifier
-            .size(96.dp)
-            .clip(RoundedCornerShape(24.dp))
-            .background(Color(0xFF6A1B9A)),
-        contentAlignment = Alignment.Center
-    ) {
-        Text("U", color = Color.White, fontSize = 48.sp, fontWeight = FontWeight.Bold)
-    }
-}
-
-@Composable
-fun AboutAppComplianceTags() {
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        AboutAppTag("Indian IT Act")
-        AboutAppTag("AES-256")
-        AboutAppTag("HIPAA Aligned")
-    }
-}
-
-@Composable
-fun AboutAppTag(text: String) {
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(8.dp))
-            .background(Color(0xFFE8F5E9))
+            .background(Color(0xFFE6F4EA), RoundedCornerShape(8.dp))
             .padding(horizontal = 12.dp, vertical = 6.dp)
     ) {
-        Text(text, color = Color(0xFF388E3C), fontSize = 12.sp, fontWeight = FontWeight.Medium)
+        Text(text, color = Color(0xFF4CAF50), fontSize = 12.sp)
     }
 }
 
 @Composable
-fun AboutAppSystemStatusCard() {
+fun SystemStatusCard() {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(2.dp)
+        colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("System Status", fontWeight = FontWeight.Bold)
+            Text("System Status", fontSize = 16.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(16.dp))
-            AboutAppStatusItem("Auth Service")
-            AboutAppStatusItem("AI Engine v2.3")
-            AboutAppStatusItem("Chat Server")
-            AboutAppStatusItem("Notification Service")
+            ServiceStatusItem("Auth Service", "Online")
+            ServiceStatusItem("AI Engine v2.0", "Online")
+            ServiceStatusItem("Chat Server", "Online")
+            ServiceStatusItem("Notification Service", "Online")
         }
     }
 }
 
 @Composable
-fun AboutAppStatusItem(serviceName: String) {
+fun ServiceStatusItem(serviceName: String, status: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(serviceName, color = Color.Gray)
+        Text(serviceName, fontSize = 16.sp, color = Color.Gray)
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
                 modifier = Modifier
                     .size(8.dp)
-                    .background(Color.Green, CircleShape)
+                    .background(Color(0xFF4CAF50), CircleShape)
             )
-            Spacer(modifier = Modifier.width(4.dp))
-            Text("Online", color = Color.Green, fontWeight = FontWeight.Medium)
+            Text(
+                text = status,
+                color = Color(0xFF4CAF50),
+                fontSize = 16.sp,
+                modifier = Modifier.padding(start = 8.dp)
+            )
         }
     }
 }
 
-
 @Preview(showBackground = true)
 @Composable
-fun AboutAppScreenPreview() {
+fun DoctorAppInfoScreenPreview() {
     UroLithAITheme {
-        AboutAppScreen(rememberNavController())
+        DoctorAppInfoScreen(rememberNavController())
     }
 }

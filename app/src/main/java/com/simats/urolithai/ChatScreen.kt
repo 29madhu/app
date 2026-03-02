@@ -49,24 +49,16 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.simats.urolithai.ui.theme.UroLithAITheme
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
-data class Message(
-    val text: String,
-    val isFromUser: Boolean,
-    val timestamp: String
-)
-
-val messages = listOf(
-    Message("Hello Dr. Sharma, I've uploaded my ultrasound report.", true, "10:30 AM"),
-    Message("Hi Rajesh, I see it. The stone size is 6.2mm.", false, "10:32 AM"),
-    Message("Is surgery required?", true, "10:33 AM"),
-    Message("Not immediately. We can try medication first since it's <7mm. I've prescribed Potassium Citrate.", false, "10:35 AM")
-).asReversed() // Reverse for lazy column
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreen(navController: NavController, doctorName: String?) {
     var messageText by remember { mutableStateOf("") }
+    val messages = ChatRepository.messages
 
     Scaffold(
         topBar = {
@@ -147,7 +139,20 @@ fun ChatScreen(navController: NavController, doctorName: String?) {
 
                 Spacer(modifier = Modifier.width(8.dp))
                 IconButton(
-                    onClick = { /*TODO*/ },
+                    onClick = {
+                         if (messageText.isNotBlank()) {
+                            val currentTime = SimpleDateFormat("hh:mm a", Locale.getDefault()).format(Date())
+                            ChatRepository.addMessage(
+                                ChatMessage(
+                                    message = messageText,
+                                    time = currentTime,
+                                    isSentByMe = true,
+                                    isRead = false
+                                )
+                            )
+                            messageText = ""
+                        }
+                    },
                     modifier = Modifier
                         .size(48.dp)
                         .clip(CircleShape)
@@ -183,11 +188,11 @@ fun ChatScreen(navController: NavController, doctorName: String?) {
 }
 
 @Composable
-fun MessageItem(message: Message) {
-    val arrangement = if (message.isFromUser) Arrangement.End else Arrangement.Start
-    val alignment = if (message.isFromUser) Alignment.End else Alignment.Start
-    val backgroundColor = if (message.isFromUser) Color(0xFF7B1FA2) else Color.White
-    val textColor = if (message.isFromUser) Color.White else Color.Black
+fun MessageItem(message: ChatMessage) {
+    val arrangement = if (message.isSentByMe) Arrangement.End else Arrangement.Start
+    val alignment = if (message.isSentByMe)  Alignment.End else Alignment.Start
+    val backgroundColor = if (message.isSentByMe) Color(0xFF7B1FA2) else Color.White
+    val textColor = if (message.isSentByMe) Color.White else Color.Black
 
     Row(
         modifier = Modifier
@@ -199,18 +204,18 @@ fun MessageItem(message: Message) {
             shape = RoundedCornerShape(
                 topStart = 16.dp,
                 topEnd = 16.dp,
-                bottomStart = if (message.isFromUser) 16.dp else 0.dp,
-                bottomEnd = if (message.isFromUser) 0.dp else 16.dp
+                bottomStart = if (message.isSentByMe) 16.dp else 0.dp,
+                bottomEnd = if (message.isSentByMe) 0.dp else 16.dp
             ),
             colors = CardDefaults.cardColors(containerColor = backgroundColor),
             elevation = CardDefaults.cardElevation(1.dp)
         ) {
             Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
-                Text(message.text, color = textColor, fontSize = 15.sp)
+                Text(message.message, color = textColor, fontSize = 15.sp)
                 Spacer(modifier = Modifier.height(4.dp))
                 Row(modifier = Modifier.align(alignment), verticalAlignment = Alignment.CenterVertically) {
-                    Text(message.timestamp, color = textColor.copy(alpha = 0.7f), fontSize = 10.sp)
-                    if (message.isFromUser) {
+                    Text(message.time, color = textColor.copy(alpha = 0.7f), fontSize = 10.sp)
+                    if (message.isSentByMe) {
                         Spacer(modifier = Modifier.width(4.dp))
                         Icon(
                             painter = painterResource(id = R.drawable.right),
@@ -232,3 +237,5 @@ fun ChatScreenPreview() {
         ChatScreen(rememberNavController(), "Dr. Priya Sharma")
     }
 }
+
+
