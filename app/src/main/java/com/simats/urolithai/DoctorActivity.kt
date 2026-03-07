@@ -54,6 +54,7 @@ class DoctorActivity : ComponentActivity() {
                         composable("doctorEditProfile") { DoctorEditProfileScreen(navController) }
                         composable("doctorHelpAndFaqs") { DoctorHelpAndFaqsScreen(navController) }
                         composable("doctorAppInfo") { DoctorAppInfoScreen(navController) }
+                        composable("doctorPrivacyPolicy") { DoctorPrivacyPolicyScreen(navController) }
                         composable("logout") { DoctorLogoutScreen(navController) }
                         composable("doctorNotifications") { DoctorNotificationsScreen(navController) }
                     }

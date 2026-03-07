@@ -2,39 +2,18 @@ package com.simats.urolithai
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.Security
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -51,28 +30,79 @@ fun DoctorSettingsScreen(navController: NavController) {
 
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text("Settings") },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White
-                )
+            TopAppBar(
+                title = { Text("Settings", fontWeight = FontWeight.Bold, fontSize = 20.sp) },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
         },
-        bottomBar = { DoctorBottomNavigationBar(navController) }
-    ) {
+        bottomBar = { DoctorBottomNavigationBar(navController) },
+        containerColor = Color(0xFFF8F9FA)
+    ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(it)
+                .padding(padding)
                 .padding(16.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             DoctorInfoCard()
-            Spacer(modifier = Modifier.height(16.dp))
-            SettingsItem(icon = R.drawable.human, title = "Edit Profile", onClick = { navController.navigate("doctorEditProfile") })
-            SettingsItem(icon = R.drawable.reports, title = "Terms & Conditions", onClick = { showTermsAndConditions = true })
-            SettingsItem(iconVector = Icons.Outlined.Security, title = "Privacy Policy", onClick = { navController.navigate("doctorPrivacyPolicy") })
-            SettingsItem(icon = R.drawable.ques, title = "Help & FAQs", onClick = { navController.navigate("doctorHelpAndFaqs") })
-            SettingsItem(iconVector = Icons.Outlined.Info, title = "App Info", onClick = { navController.navigate("doctorAppInfo") })
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            ) {
+                Column {
+                    SettingsItem(icon = R.drawable.human, title = "Edit Profile") { 
+                        navController.navigate("doctorEditProfile") 
+                    }
+                    SettingsItem(icon = R.drawable.reports, title = "Terms & Conditions") { 
+                        showTermsAndConditions = true 
+                    }
+                    SettingsItem(icon = R.drawable.img_27, title = "Privacy Policy") { 
+                        navController.navigate("doctorPrivacyPolicy") 
+                    }
+                    SettingsItem(icon = R.drawable.question, title = "Help & FAQs") { 
+                        navController.navigate("doctorHelpAndFaqs") 
+                    }
+                    SettingsItem(icon = R.drawable.img_14, title = "App Info") { 
+                        navController.navigate("doctorAppInfo") 
+                    }
+                }
+            }
+
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { navController.navigate("logout") },
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.danger),
+                        contentDescription = "Logout",
+                        tint = Color.Red,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = "Logout",
+                        color = Color.Red,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    )
+                }
+            }
         }
     }
 
@@ -113,22 +143,40 @@ fun DoctorInfoCard() {
 }
 
 @Composable
-fun SettingsItem(icon: Int? = null, iconVector: ImageVector? = null, title: String, onClick: () -> Unit = {}) {
+fun SettingsItem(icon: Int, title: String, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(vertical = 16.dp),
+            .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        if (icon != null) {
-            Icon(painterResource(id = icon), contentDescription = title, tint = Color.Gray, modifier = Modifier.size(24.dp))
-        } else if (iconVector != null) {
-            Icon(iconVector, contentDescription = title, tint = Color.Gray, modifier = Modifier.size(24.dp))
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .background(Color(0xFFF8F9FA), RoundedCornerShape(8.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                painter = painterResource(id = icon),
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+                tint = Color.Gray
+            )
         }
         Spacer(modifier = Modifier.width(16.dp))
-        Text(title, modifier = Modifier.weight(1f), fontSize = 16.sp)
-        Icon(Icons.AutoMirrored.Filled.ArrowForwardIos, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(16.dp))
+        Text(
+            text = title,
+            modifier = Modifier.weight(1f),
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Medium
+        )
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
+            contentDescription = null,
+            tint = Color.LightGray,
+            modifier = Modifier.size(14.dp)
+        )
     }
 }
 

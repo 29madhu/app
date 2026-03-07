@@ -54,7 +54,12 @@ import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun OtpVerificationScreen(onNavigateBack: () -> Unit, onVerifyAndRegister: () -> Unit) {
+fun OtpVerificationScreen(
+    email: String,
+    onNavigateBack: () -> Unit,
+    onVerifyAndRegister: () -> Unit
+) {
+
     val otpDigits = remember { mutableStateListOf("", "", "", "", "", "") }
     val focusRequesters = remember { List(6) { FocusRequester() } }
     var ticks by remember { mutableStateOf(60) }
@@ -76,13 +81,18 @@ fun OtpVerificationScreen(onNavigateBack: () -> Unit, onVerifyAndRegister: () ->
                     }
                 },
                 actions = {
-                    Text("Step 3/4", modifier = Modifier.padding(end = 16.dp), color = Color.Gray)
+                    Text(
+                        "Step 3/4",
+                        modifier = Modifier.padding(end = 16.dp),
+                        color = Color.Gray
+                    )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
         },
         containerColor = Color(0xFFF8F5FA)
     ) { paddingValues ->
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -90,36 +100,67 @@ fun OtpVerificationScreen(onNavigateBack: () -> Unit, onVerifyAndRegister: () ->
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+
             Spacer(modifier = Modifier.height(64.dp))
+
             Image(
                 painter = painterResource(id = R.drawable.img_10),
                 contentDescription = null,
                 modifier = Modifier.size(80.dp)
             )
+
             Spacer(modifier = Modifier.height(16.dp))
+
             Text("Verify OTP", fontSize = 24.sp, fontWeight = FontWeight.Bold)
-            Text("Enter the Otp sent your registered mobile number", fontSize = 16.sp, color = Color.Gray, textAlign = TextAlign.Center)
+
+            Text(
+                text = "Enter the OTP sent to your email",
+                fontSize = 16.sp,
+                color = Color.Gray,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                text = email,
+                fontSize = 14.sp,
+                color = Color(0xFF6A1B9A),
+                fontWeight = FontWeight.Bold
+            )
 
             Spacer(modifier = Modifier.height(32.dp))
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+
                 otpDigits.forEachIndexed { index, value ->
+
                     OutlinedTextField(
                         value = value,
                         onValueChange = { newValue ->
+
                             if (newValue.length <= 1) {
+
                                 otpDigits[index] = newValue
+
                                 if (newValue.isNotEmpty() && index < 5) {
                                     focusRequesters[index + 1].requestFocus()
-                                } else if (newValue.isEmpty() && index > 0) {
+                                }
+
+                                else if (newValue.isEmpty() && index > 0) {
                                     focusRequesters[index - 1].requestFocus()
                                 }
                             }
                         },
+
                         modifier = Modifier
                             .weight(1f)
                             .onKeyEvent {
-                                if (it.key == Key.Backspace && otpDigits[index].isEmpty() && index > 0) {
+
+                                if (it.key == Key.Backspace &&
+                                    otpDigits[index].isEmpty() &&
+                                    index > 0
+                                ) {
                                     focusRequesters[index - 1].requestFocus()
                                     true
                                 } else {
@@ -127,9 +168,17 @@ fun OtpVerificationScreen(onNavigateBack: () -> Unit, onVerifyAndRegister: () ->
                                 }
                             }
                             .focusRequester(focusRequesters[index]),
-                        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center, fontSize = 24.sp, fontWeight = FontWeight.Bold),
+
+                        textStyle = LocalTextStyle.current.copy(
+                            textAlign = TextAlign.Center,
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold
+                        ),
+
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+
                         shape = RoundedCornerShape(12.dp),
+
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color(0xFF6A1B9A),
                             unfocusedBorderColor = Color.LightGray,
@@ -142,13 +191,32 @@ fun OtpVerificationScreen(onNavigateBack: () -> Unit, onVerifyAndRegister: () ->
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+
                 if (ticks > 0) {
+
                     Text("Resend OTP in ", color = Color.Gray)
-                    Text("${ticks}s", color = Color(0xFF6A1B9A), fontWeight = FontWeight.Bold)
+
+                    Text(
+                        "${ticks}s",
+                        color = Color(0xFF6A1B9A),
+                        fontWeight = FontWeight.Bold
+                    )
+
                 } else {
+
                     TextButton(onClick = { ticks = 60 }) {
-                        Text("Resend OTP", color = Color(0xFF6A1B9A), fontWeight = FontWeight.Bold)
+
+                        Text(
+                            "Resend OTP",
+                            color = Color(0xFF6A1B9A),
+                            fontWeight = FontWeight.Bold
+                        )
+
                     }
                 }
             }
@@ -163,16 +231,32 @@ fun OtpVerificationScreen(onNavigateBack: () -> Unit, onVerifyAndRegister: () ->
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6A1B9A))
             ) {
-                Text(text = "Verify & Register", fontSize = 18.sp)
+
+                Text(
+                    text = "Verify & Register",
+                    fontSize = 18.sp
+                )
+
             }
+
         }
+
     }
+
 }
 
 @Preview(showBackground = true)
 @Composable
 fun OtpVerificationScreenPreview() {
+
     UroLithAITheme {
-        OtpVerificationScreen(onNavigateBack = {}, onVerifyAndRegister = {})
+
+        OtpVerificationScreen(
+            email = "demo@gmail.com",
+            onNavigateBack = {},
+            onVerifyAndRegister = {}
+        )
+
     }
+
 }

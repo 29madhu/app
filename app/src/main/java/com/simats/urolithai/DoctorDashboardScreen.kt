@@ -201,7 +201,7 @@ fun QuickActionItem(icon: Any, label: String, onClick: () -> Unit = {}) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DoctorBottomNavigationBar(navController: NavController) {
-    val items = listOf("Home", "Cases", "Appts", "Chat", "Settings", "Logout")
+    val items = listOf("Home", "Cases", "Appts", "Chat", "Settings")
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
@@ -213,10 +213,10 @@ fun DoctorBottomNavigationBar(navController: NavController) {
                 "Appts" -> "appointments"
                 "Chat" -> "messages"
                 "Settings" -> "settings"
-                "Logout" -> "logout"
                 else -> "dashboard"
             }
             val isSelected = when (screen) {
+                "Home" -> currentRoute == "dashboard"
                 "Cases" -> currentRoute?.startsWith("cases") == true
                 else -> currentRoute == route
             }
@@ -226,30 +226,27 @@ fun DoctorBottomNavigationBar(navController: NavController) {
                         if (screen == "Cases" && !isSelected) { Badge { Text("3") } }
                         if (screen == "Chat" && !isSelected) { Badge { Text("2") } }
                     }) {
-                        when (screen) {
-                            "Home" -> Icon(Icons.Outlined.Home, contentDescription = screen)
-                            "Cases" -> Icon(painterResource(id = R.drawable.reports), contentDescription = screen)
-                            "Appts" -> Icon(painterResource(id = R.drawable.book), contentDescription = screen)
-                            "Chat" -> Icon(Icons.AutoMirrored.Outlined.Chat, contentDescription = screen)
-                            "Settings" -> Icon(Icons.Outlined.Settings, contentDescription = screen)
-                            "Logout" -> Icon(Icons.AutoMirrored.Outlined.Logout, contentDescription = screen)
+                        val iconRes = when (screen) {
+                            "Home" -> R.drawable.home
+                            "Cases" -> R.drawable.reports
+                            "Appts" -> R.drawable.appoinments
+                            "Chat" -> R.drawable.chat
+                            "Settings" -> R.drawable.settings
+                            else -> R.drawable.home
                         }
+                        Icon(painterResource(id = iconRes), contentDescription = screen, modifier = Modifier.size(24.dp))
                     }
                 },
-                label = { Text(screen) },
+                label = { Text(screen, fontSize = 10.sp) },
                 selected = isSelected,
                 onClick = { 
                     if (!isSelected) {
-                        if (screen == "Logout") {
-                            navController.navigate("logout")
-                        } else {
-                            navController.navigate(route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                restoreState = true
+                        navController.navigate(route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
                             }
+                            launchSingleTop = true
+                            restoreState = true
                         }
                     }
                 },

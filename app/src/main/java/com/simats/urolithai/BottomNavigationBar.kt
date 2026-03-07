@@ -1,58 +1,71 @@
 package com.simats.urolithai
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Chat
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.outlined.DateRange
-import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 
 data class BottomNavItem(
     val title: String,
     val route: String,
-    val selectedIcon: ImageVector,
-    val unselectedIcon: ImageVector,
+    val icon: Int
 )
 
 @Composable
 fun BottomNavigationBar(navController: NavController) {
     val items = listOf(
-        BottomNavItem("Home", Screen.Home.route, Icons.Filled.Home, Icons.Outlined.Home),
-        BottomNavItem("Reports", Screen.Reports.route, Icons.Filled.DateRange, Icons.Outlined.DateRange),
-        BottomNavItem("Appointments", Screen.Appointments.route, Icons.Filled.DateRange, Icons.Outlined.DateRange),
-        BottomNavItem("Chat", Screen.Chat.route, Icons.AutoMirrored.Filled.Chat, Icons.AutoMirrored.Filled.Chat),
-        BottomNavItem("Settings", Screen.Settings.route, Icons.Filled.Settings, Icons.Outlined.Settings),
+        BottomNavItem("Home", "dashboard", R.drawable.home),
+        BottomNavItem("Reports", "myReports", R.drawable.reports),
+        BottomNavItem("Appts", "appointments", R.drawable.book),
+        BottomNavItem("Chat", "chat", R.drawable.think),
+        BottomNavItem("Settings", "settings", R.drawable.settings),
     )
 
-    NavigationBar {
+    NavigationBar(containerColor = Color.White) {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination?.route
 
         items.forEach { item ->
+            val isSelected = currentRoute == item.route
             NavigationBarItem(
-                selected = currentRoute == item.route,
-                onClick = { navController.navigate(item.route) {
-                    navController.graph.startDestinationRoute?.let { route ->
-                        popUpTo(route) {
-                            saveState = true
+                selected = isSelected,
+                onClick = {
+                    if (!isSelected) {
+                        navController.navigate(item.route) {
+                            popUpTo("dashboard") {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
                         }
                     }
-                    launchSingleTop = true
-                    restoreState = true
-                } },
-                icon = { Icon(if (currentRoute == item.route) item.selectedIcon else item.unselectedIcon, contentDescription = item.title) },
-                label = { Text(item.title) }
+                },
+                icon = {
+                    Icon(
+                        painter = painterResource(id = item.icon),
+                        contentDescription = item.title,
+                        modifier = Modifier.size(24.dp)
+                    )
+                },
+                label = { Text(item.title, fontSize = 10.sp) },
+                colors = NavigationBarItemDefaults.colors(
+                    indicatorColor = Color(0xFFF3E5F5),
+                    selectedIconColor = Color(0xFF6A1B9A),
+                    unselectedIconColor = Color.Gray,
+                    selectedTextColor = Color(0xFF6A1B9A),
+                    unselectedTextColor = Color.Gray
+                )
             )
         }
     }

@@ -68,9 +68,9 @@ data class Appointment(
 
 // SAMPLE DATA
 val appointmentsList = listOf(
-    Appointment("Rajesh Kumar", "09:00 AM", "Video Call", R.drawable.call, Calendar.getInstance().apply { set(2025, Calendar.JANUARY, 15) }, "+911234567890"),
+    Appointment("Rajesh Kumar", "09:00 AM", "Voice Call", R.drawable.call, Calendar.getInstance().apply { set(2025, Calendar.JANUARY, 15) }, "+911234567890"),
     Appointment("Meera Iyer", "10:30 AM", "In-Person", R.drawable.location, Calendar.getInstance().apply { set(2025, Calendar.JANUARY, 15) }, "+919876543210"),
-    Appointment("Suresh Patel", "02:00 PM", "Video Call", R.drawable.call, Calendar.getInstance().apply { set(2025, Calendar.JANUARY, 15) }, "+919998887776")
+    Appointment("Suresh Patel", "02:00 PM", "Voice Call", R.drawable.call, Calendar.getInstance().apply { set(2025, Calendar.JANUARY, 15) }, "+919998887776")
 )
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -53,7 +53,7 @@ fun LoginScreen(
     onForgotPassword: () -> Unit,
 ) {
     var selectedRole by remember { mutableStateOf("Patient") }
-    var patientId by remember { mutableStateOf("PAT234567") }
+    var userId by remember { mutableStateOf("PAT234567") }
     var password by remember { mutableStateOf("gv5f6gybh") }
     val context = LocalContext.current
 
@@ -86,11 +86,23 @@ fun LoginScreen(
                             .background(Color.White)
                             .padding(4.dp),
                     ) {
-                        RoleToggleButton(text = "Patient", icon = R.drawable.human, isSelected = selectedRole == "Patient", modifier = Modifier.weight(1f)) { selectedRole = "Patient" }
-                        RoleToggleButton(text = "Doctor", icon = R.drawable.img_16, isSelected = selectedRole == "Doctor", modifier = Modifier.weight(1f)) { selectedRole = "Doctor" }
+                        RoleToggleButton(text = "Patient", icon = R.drawable.human, isSelected = selectedRole == "Patient", modifier = Modifier.weight(1f)) { 
+                            selectedRole = "Patient" 
+                            userId = "PAT234567"
+                        }
+                        RoleToggleButton(text = "Doctor", icon = R.drawable.img_16, isSelected = selectedRole == "Doctor", modifier = Modifier.weight(1f)) { 
+                            selectedRole = "Doctor" 
+                            userId = "DOC123456"
+                        }
                     }
                     Spacer(modifier = Modifier.height(16.dp))
-                    OutlinedTextField(value = patientId, onValueChange = { patientId = it }, label = { Text("Patient ID") }, modifier = Modifier.fillMaxWidth(), colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xFF6A1B9A)))
+                    OutlinedTextField(
+                        value = userId, 
+                        onValueChange = { userId = it }, 
+                        label = { Text(if (selectedRole == "Patient") "Patient ID" else "Doctor ID") }, 
+                        modifier = Modifier.fillMaxWidth(), 
+                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xFF6A1B9A))
+                    )
                     Spacer(modifier = Modifier.height(16.dp))
                     OutlinedTextField(value = password, onValueChange = { password = it }, label = { Text("Password") }, modifier = Modifier.fillMaxWidth(), visualTransformation = PasswordVisualTransformation(), colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xFF6A1B9A)))
                     Spacer(modifier = Modifier.height(16.dp))

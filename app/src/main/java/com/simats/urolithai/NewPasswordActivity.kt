@@ -6,15 +6,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -22,25 +15,11 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -79,8 +58,9 @@ fun NewPasswordScreen(onNavigateBack: () -> Unit, onResetPassword: () -> Unit) {
     val passwordStrength by remember {
         derivedStateOf {
             when {
-                newPassword.length < 6 -> 0.0f
-                newPassword.length < 10 -> 0.5f
+                newPassword.isEmpty() -> 0.0f
+                newPassword.length < 6 -> 0.33f
+                newPassword.length < 10 -> 0.66f
                 else -> 1.0f
             }
         }
@@ -98,75 +78,150 @@ fun NewPasswordScreen(onNavigateBack: () -> Unit, onResetPassword: () -> Unit) {
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
         },
-        bottomBar = {},
-        containerColor = Color(0xFFF8F5FA)
+        containerColor = Color(0xFFF8F9FB)
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(24.dp),
+                .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(64.dp))
-            Image(
-                painter = painterResource(id = R.drawable.img_11),
-                contentDescription = null,
-                modifier = Modifier.size(80.dp)
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text("New Password", fontSize = 24.sp, fontWeight = FontWeight.Bold)
-            Text("Create a strong password for your account", fontSize = 16.sp, color = Color.Gray)
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            OutlinedTextField(
-                value = newPassword,
-                onValueChange = { newPassword = it },
-                label = { Text("New Password") },
-                visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                trailingIcon = {
-                    IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
-                        Icon(if (isPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff, contentDescription = "Toggle password visibility")
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            OutlinedTextField(
-                value = confirmPassword,
-                onValueChange = { confirmPassword = it },
-                label = { Text("Confirm Password") },
-                visualTransformation = PasswordVisualTransformation(),
-                trailingIcon = {
-                    if (newPassword.isNotEmpty() && newPassword == confirmPassword) {
-                        Icon(Icons.Default.Check, contentDescription = "Passwords match", tint = Color.Green)
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                LinearProgressIndicator(
-                    progress = { passwordStrength },
-                    modifier = Modifier.weight(1f),
-                    color = when {
-                        passwordStrength < 0.5f -> Color.Red
-                        passwordStrength < 1.0f -> Color.Yellow
-                        else -> Color.Green
-                    },
-                    trackColor = Color.LightGray.copy(alpha = 0.3f)
+            Spacer(modifier = Modifier.height(20.dp))
+            
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(Color(0xFFF3E5F5)),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.img_11),
+                    contentDescription = "Lock Icon",
+                    modifier = Modifier.size(60.dp)
                 )
-                Spacer(modifier = Modifier.size(8.dp))
-                Text("Strong", color = Color.Gray)
+            }
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(
+                text = "New Password", 
+                fontSize = 24.sp, 
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF1D1B20)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Create a strong password for your account", 
+                fontSize = 14.sp, 
+                color = Color(0xFF79747E),
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(40.dp))
+
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    "New Password", 
+                    fontSize = 12.sp, 
+                    fontWeight = FontWeight.Medium, 
+                    color = Color(0xFF49454F),
+                    modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
+                )
+                OutlinedTextField(
+                    value = newPassword,
+                    onValueChange = { newPassword = it },
+                    placeholder = { Text("Enter new password", color = Color.LightGray) },
+                    visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    trailingIcon = {
+                        IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
+                            Icon(
+                                if (isPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff, 
+                                contentDescription = null,
+                                tint = Color(0xFF79747E)
+                            )
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color(0xFF6A1B9A),
+                        unfocusedBorderColor = Color(0xFFE0E0E0),
+                        focusedContainerColor = Color.White,
+                        unfocusedContainerColor = Color.White
+                    ),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    "Confirm Password", 
+                    fontSize = 12.sp, 
+                    fontWeight = FontWeight.Medium, 
+                    color = Color(0xFF49454F),
+                    modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
+                )
+                OutlinedTextField(
+                    value = confirmPassword,
+                    onValueChange = { confirmPassword = it },
+                    placeholder = { Text("Confirm your password", color = Color.LightGray) },
+                    visualTransformation = PasswordVisualTransformation(),
+                    trailingIcon = {
+                        if (newPassword.isNotEmpty() && newPassword == confirmPassword) {
+                            Icon(Icons.Default.Check, contentDescription = null, tint = Color(0xFF4CAF50))
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color(0xFF6A1B9A),
+                        unfocusedBorderColor = Color(0xFFE0E0E0),
+                        focusedContainerColor = Color.White,
+                        unfocusedContainerColor = Color.White
+                    ),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    repeat(3) { index ->
+                        val barColor = when {
+                            passwordStrength >= (index + 1) / 3f -> when(index) {
+                                0 -> Color(0xFFFF8A80)
+                                1 -> Color(0xFFFFD54F)
+                                else -> Color(0xFF81C784)
+                            }
+                            else -> Color(0xFFE0E0E0)
+                        }
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(6.dp)
+                                .clip(RoundedCornerShape(3.dp))
+                                .background(barColor)
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = when {
+                        passwordStrength < 0.4f -> "Weak"
+                        passwordStrength < 0.7f -> "Medium"
+                        else -> "Strong"
+                    },
+                    color = Color(0xFF79747E),
+                    fontSize = 12.sp,
+                    modifier = Modifier.align(Alignment.End)
+                )
             }
 
             Spacer(modifier = Modifier.weight(1f))
@@ -175,13 +230,19 @@ fun NewPasswordScreen(onNavigateBack: () -> Unit, onResetPassword: () -> Unit) {
                 onClick = onResetPassword,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
+                    .height(56.dp)
+                    .padding(bottom = 8.dp),
                 shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6A1B9A)),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF6A1B9A),
+                    disabledContainerColor = Color(0xFFE1BEE7)
+                ),
                 enabled = newPassword.isNotEmpty() && newPassword == confirmPassword
             ) {
-                Text(text = "Reset Password", fontSize = 18.sp)
+                Text(text = "Reset Password", fontSize = 16.sp, fontWeight = FontWeight.Bold)
             }
+            
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }

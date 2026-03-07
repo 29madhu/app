@@ -1,37 +1,14 @@
-
 package com.simats.urolithai
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,29 +25,29 @@ import com.simats.urolithai.ui.theme.UroLithAITheme
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DoctorRejectedCasesScreen(navController: NavController) {
-    var selectedTabIndex by remember { mutableStateOf(2) }
+    var selectedTabIndex by remember { mutableIntStateOf(2) }
     val tabs = listOf("Pending", "Approved", "Rejected", "Follow-up")
 
     val filteredCases = allCases.filter {
-        it.status.equals("Rejected", ignoreCase = true)
+        it.status.equals(tabs[selectedTabIndex], ignoreCase = true)
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Case Management", fontWeight = FontWeight.Bold) },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFFF8F5FA))
+                title = { Text("Case Management", fontWeight = FontWeight.Bold, fontSize = 22.sp) },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
         },
         bottomBar = { DoctorBottomNavigationBar(navController) },
-        containerColor = Color(0xFFF8F5FA)
+        containerColor = Color(0xFFF8F9FA)
     ) { paddingValues ->
         Column(modifier = Modifier.padding(paddingValues)) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.SpaceAround,
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 tabs.forEachIndexed { index, title ->
@@ -78,49 +55,46 @@ fun DoctorRejectedCasesScreen(navController: NavController) {
                     val selectedColor = Color(0xFF6A1B9A)
                     val unselectedColor = Color.Gray
 
-                    val tabModifier = if (isSelected) {
-                        Modifier
-                            .clip(RoundedCornerShape(20.dp))
-                            .background(selectedColor)
-                            .clickable { selectedTabIndex = index }
-                            .padding(horizontal = 12.dp, vertical = 8.dp)
-                    } else {
-                        Modifier
-                            .clip(RoundedCornerShape(20.dp))
-                            .clickable { selectedTabIndex = index }
-                            .padding(horizontal = 12.dp, vertical = 8.dp)
-                    }
-
-                    Row(
-                        modifier = tabModifier,
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    Surface(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(24.dp))
+                            .clickable { selectedTabIndex = index },
+                        color = if (isSelected) selectedColor else Color.White,
+                        shape = RoundedCornerShape(24.dp),
+                        border = if (isSelected) null else BorderStroke(1.dp, Color(0xFFE0E0E0))
                     ) {
-                        val iconModifier = Modifier.size(16.dp)
-                        val tint = if (isSelected) Color.White else unselectedColor
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            val tint = if (isSelected) Color.White else unselectedColor
+                            val iconModifier = Modifier.size(18.dp)
+                            
+                            val iconRes = when (title) {
+                                "Pending" -> R.drawable.timer
+                                "Approved" -> R.drawable.img_15
+                                "Rejected" -> R.drawable.img_25
+                                "Follow-up" -> R.drawable.img_26
+                                else -> R.drawable.timer
+                            }
+                            Icon(painterResource(id = iconRes), null, modifier = iconModifier, tint = tint)
 
-                        when (title) {
-                            "Pending" -> Icon(painterResource(id = R.drawable.timer), contentDescription = title, modifier = iconModifier, tint = tint)
-                            "Approved" -> Icon(painterResource(id = R.drawable.img_15), contentDescription = title, modifier = iconModifier, tint = tint)
-                            "Rejected" -> Icon(painterResource(id = R.drawable.wrong), contentDescription = title, modifier = iconModifier, tint = tint)
-                            "Follow-up" -> Icon(painterResource(id = R.drawable.circle), contentDescription = title, modifier = iconModifier, tint = tint)
+                            Text(
+                                text = title,
+                                color = if (isSelected) Color.White else unselectedColor,
+                                fontSize = 13.sp,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                            )
                         }
-
-                        Text(
-                            text = title,
-                            color = if (isSelected) Color.White else unselectedColor,
-                            fontSize = 14.sp
-                        )
                     }
                 }
             }
 
             LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                contentPadding = PaddingValues(top = 16.dp, bottom = 16.dp)
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 items(filteredCases) { case ->
                     RejectedCaseItemCard(navController = navController, case = case)
@@ -132,63 +106,76 @@ fun DoctorRejectedCasesScreen(navController: NavController) {
 
 @Composable
 fun RejectedCaseItemCard(navController: NavController, case: Case) {
-    val statusColor = Color(0xFFD32F2F)
+    val statusColor = Color(0xFFB71C1C)
     val statusBackgroundColor = Color(0xFFFFEBEE)
 
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(0.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Column {
-                    Text(case.title, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    Text(case.title, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     Text(case.id, color = Color.Gray, fontSize = 12.sp)
                 }
-                Text(
-                    text = "rejected",
-                    color = statusColor,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Medium,
-                    modifier = Modifier
-                        .background(color = statusBackgroundColor, shape = RoundedCornerShape(8.dp))
-                        .padding(horizontal = 12.dp, vertical = 6.dp)
-                )
+                Surface(
+                    color = statusBackgroundColor,
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text(
+                        text = "rejected",
+                        color = statusColor,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                    )
+                }
             }
+
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    painterResource(id = R.drawable.reports),
-                    contentDescription = null,
-                    tint = Color.Gray,
-                    modifier = Modifier
-                        .size(40.dp)
-                        .background(Color(0xFFF0F0F0), RoundedCornerShape(8.dp))
-                        .padding(8.dp)
-                )
+                Surface(
+                    modifier = Modifier.size(44.dp),
+                    color = Color(0xFFF5F5F5),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.reports),
+                            contentDescription = null,
+                            tint = Color.Gray,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
                 Spacer(modifier = Modifier.width(12.dp))
                 Column {
-                    Text(case.type, fontWeight = FontWeight.Bold, color = Color.Black)
+                    Text(case.type, fontWeight = FontWeight.Medium, fontSize = 14.sp)
                     Text(case.date, color = Color.Gray, fontSize = 12.sp)
                 }
             }
+
             Button(
                 onClick = { navController.navigate("rejected_case_reason/${case.id}") },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp),
+                    .height(48.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = statusBackgroundColor)
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFFFEBEE),
+                    contentColor = Color(0xFFB71C1C)
+                )
             ) {
-                Text("View Reason", color = statusColor, fontWeight = FontWeight.Bold)
+                Text("View Reason", fontWeight = FontWeight.Bold, fontSize = 14.sp)
             }
         }
     }

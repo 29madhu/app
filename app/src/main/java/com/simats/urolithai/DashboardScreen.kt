@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,8 +22,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
-import androidx.compose.material.icons.filled.MedicalServices
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -44,6 +46,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -78,23 +81,26 @@ fun DashboardScreen(navController: NavController) {
                     }
                 },
                 actions = {
-                    IconButton(onClick = { navController.navigate(Screen.Notifications.route) }) {
-                        Icon(Icons.Default.Notifications, contentDescription = "Notifications")
-                    }
-                    IconButton(onClick = { navController.navigate(Screen.MyProfile.route) }) {
-                        Image(
-                            painter = painterResource(id = R.drawable.img_4),
-                            contentDescription = "User Profile",
-                            modifier = Modifier
-                                .size(32.dp)
-                                .clip(CircleShape)
-                        )
+                    BadgedBox(badge = { Badge { Text("3") } }) {
+                        IconButton(onClick = { navController.navigate("notifications") }) {
+                            Icon(Icons.Default.Notifications, contentDescription = "Notifications")
+                        }
                     }
                     Spacer(modifier = Modifier.width(8.dp))
+                    Image(
+                        painter = painterResource(id = R.drawable.img_4),
+                        contentDescription = "User Profile",
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .clickable { navController.navigate("myProfile") }
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
         },
+        bottomBar = { BottomNavigationBar(navController) },
         containerColor = Color(0xFFF8F5FA)
     ) { paddingValues ->
         Column(
@@ -104,6 +110,7 @@ fun DashboardScreen(navController: NavController) {
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp)
         ) {
+            // No Doctor Selected Card
             if (selectedDoctor == null) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -114,19 +121,25 @@ fun DashboardScreen(navController: NavController) {
                         modifier = Modifier.padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.MedicalServices, contentDescription = null, tint = Color(0xFFFBC02D))
+                        Image(painter = painterResource(id = R.drawable.danger), contentDescription = null, modifier = Modifier.size(24.dp))
                         Spacer(modifier = Modifier.width(8.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text("No Doctor Selected", fontWeight = FontWeight.Bold)
                             Text("Select a doctor to upload reports", fontSize = 12.sp, color = Color.Gray)
                         }
-                        TextButton(onClick = { navController.navigate(Screen.FindDoctor.route) }) {
-                            Text("Select")
+                        Button(
+                            onClick = { navController.navigate("findDoctor") },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                            elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp),
+                            shape = RoundedCornerShape(8.dp),
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)
+                        ) {
+                            Text("Select", color = Color.Black, fontSize = 12.sp)
                         }
                     }
                 }
             } else {
-                Card(
+                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F5E9))
@@ -135,13 +148,13 @@ fun DashboardScreen(navController: NavController) {
                         modifier = Modifier.padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.MedicalServices, contentDescription = null, tint = Color(0xFF388E3C))
+                        Image(painter = painterResource(id = R.drawable.doctor), contentDescription = null, modifier = Modifier.size(24.dp))
                         Spacer(modifier = Modifier.width(8.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(selectedDoctor!!.name, fontWeight = FontWeight.Bold)
                             Text(selectedDoctor!!.specialization, fontSize = 12.sp, color = Color.Gray)
                         }
-                        TextButton(onClick = { navController.navigate(Screen.FindDoctor.route) }) {
+                        TextButton(onClick = { navController.navigate("findDoctor") }) {
                             Text("Change")
                         }
                     }
@@ -150,75 +163,107 @@ fun DashboardScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Button(
-                onClick = { navController.navigate("upload_report/${selectedDoctor?.name}") },
+            // Upload Scan Card
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(80.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6A1B9A)),
-                enabled = selectedDoctor != null
+                    .height(90.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(
+                        Brush.horizontalGradient(
+                            colors = listOf(Color(0xFF6A1B9A), Color(0xFF9575CD))
+                        )
+                    )
+                    .clickable { navController.navigate("uploadReport") }
             ) {
-                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Image(painter = painterResource(id = R.drawable.upload), contentDescription = null, modifier = Modifier.size(40.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color.White.copy(alpha = 0.2f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Image(painter = painterResource(id = R.drawable.cam), contentDescription = null, modifier = Modifier.size(24.dp))
+                    }
                     Spacer(modifier = Modifier.width(16.dp))
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Upload Scan", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                        Text("Upload final report for doctor review", fontSize = 12.sp)
+                        Text("Upload Scan", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                        Text("Upload new report for doctor review", color = Color.White.copy(alpha = 0.8f), fontSize = 12.sp)
                     }
-                    Icon(Icons.AutoMirrored.Filled.ArrowForwardIos, contentDescription = null)
+                    Icon(Icons.AutoMirrored.Filled.ArrowForwardIos, contentDescription = null, tint = Color.White)
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Status Row
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                StatusCard("Pending", "2", Color(0xFFFFF3E0), Color(0xFFFFA000), modifier = Modifier.weight(1f))
-                StatusCard("Approved", "1", Color(0xFFE8F5E9), Color(0xFF388E3C), modifier = Modifier.weight(1f))
-                StatusCard("Next Appt", "15 Aug", Color(0xFFE3F2FD), Color(0xFF1976D2), modifier = Modifier.weight(1f), onClick = { navController.navigate(Screen.BookAppointment.route) })
+                StatusCard("Pending", "2", Color(0xFFFF9800), modifier = Modifier.weight(1f))
+                StatusCard("Approved", "1", Color(0xFF4CAF50), modifier = Modifier.weight(1f))
+                NextApptCard("Next Appt", "15", "JAN", Color(0xFF2196F3), modifier = Modifier.weight(1f))
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // Quick Actions Section
             Text("Quick Actions", fontWeight = FontWeight.Bold, fontSize = 18.sp)
             Spacer(modifier = Modifier.height(16.dp))
 
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                QuickActionCard("Find Doctor", R.drawable.doctor, modifier = Modifier.weight(1f), onClick = { navController.navigate(Screen.FindDoctor.route) })
-                QuickActionCard("Upload History", R.drawable.upload, modifier = Modifier.weight(1f), onClick = { navController.navigate(Screen.UploadHistory.route) })
+                QuickActionCard("Find Doctor", R.drawable.doctor, "Specialists nearby", modifier = Modifier.weight(1f), onClick = { navController.navigate("findDoctor") })
+                QuickActionCard("Upload History", R.drawable.upload, "Track scan status", modifier = Modifier.weight(1f), onClick = { navController.navigate("uploadHistory") })
             }
             Spacer(modifier = Modifier.height(16.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                QuickActionCard("Diet & Tips", R.drawable.favourite, modifier = Modifier.weight(1f), onClick = { navController.navigate(Screen.DietPrecautions.route) })
-                QuickActionCard("Appointments", R.drawable.timer, modifier = Modifier.weight(1f), onClick = { navController.navigate(Screen.BookAppointment.route) })
+                QuickActionCard("Diet & Tips", R.drawable.img_23, "Health guide", modifier = Modifier.weight(1f), onClick = { navController.navigate("dietPrecautions") })
+                QuickActionCard("Prescriptions", R.drawable.medicine, "Your medications", modifier = Modifier.weight(1f), onClick = { navController.navigate("myPrescriptions") })
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // Recent Reports Section
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Text("Recent Reports", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                TextButton(onClick = { }) {
-                    Text("View All")
+                TextButton(onClick = { navController.navigate("myReports") }) {
+                    Text("View All", color = Color(0xFF6A1B9A))
                 }
             }
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             ReportItem("Ultrasound Left Kidney", "12, Jan, 2024", "pending", R.drawable.timer, navController)
-            ReportItem("CT Scan Bilateral", "02, Jan, 2024", "approved", R.drawable.img_7, navController)
-            ReportItem("X-Ray KUB", "20, Dec, 2023", "rejected", R.drawable.img_11, navController)
+            ReportItem("CT Scan Bilateral", "02, Jan, 2024", "approved", R.drawable.img_15, navController)
+            ReportItem("X-Ray KUB", "20, Dec, 2023", "rejected", R.drawable.wrong, navController)
             
             Spacer(modifier = Modifier.height(24.dp))
             
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(painter = painterResource(id = R.drawable.location), contentDescription = null, tint = Color(0xFF6A1B9A))
-                Spacer(modifier = Modifier.width(8.dp))
-                Column {
-                    Text("Current Location", fontSize = 12.sp, color = Color.Gray)
-                    Text("Indiranagar, Bangalore", fontWeight = FontWeight.Bold)
-                }
-                Spacer(modifier = Modifier.weight(1f))
-                TextButton(onClick = { }) {
-                    Text("CHANGE")
+            // Location Section
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White)
+            ) {
+                Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Image(painter = painterResource(id = R.drawable.location), contentDescription = null, modifier = Modifier.size(24.dp))
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text("Current Location", fontSize = 12.sp, color = Color.Gray)
+                        Text("Indiranagar, Bangalore", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    }
+                    Spacer(modifier = Modifier.weight(1f))
+                    Button(
+                        onClick = { },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF3E5F5)),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text("CHANGE", color = Color(0xFF6A1B9A), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    }
                 }
             }
         }
@@ -226,38 +271,67 @@ fun DashboardScreen(navController: NavController) {
 }
 
 @Composable
-fun StatusCard(title: String, value: String, backgroundColor: Color, textColor: Color, modifier: Modifier = Modifier, onClick: (() -> Unit)? = null) {
+fun StatusCard(title: String, value: String, backgroundColor: Color, modifier: Modifier = Modifier) {
     Card(
-        modifier = modifier.then(if(onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
-        shape = RoundedCornerShape(12.dp),
+        modifier = modifier.height(100.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = backgroundColor)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(title, fontSize = 14.sp, color = Color.Gray)
-            Text(value, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = textColor)
+            Text(title, fontSize = 12.sp, color = Color.White.copy(alpha = 0.8f))
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(value, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.White)
         }
     }
 }
 
 @Composable
-fun QuickActionCard(title: String, iconRes: Int, modifier: Modifier = Modifier, onClick: () -> Unit = {}) {
+fun NextApptCard(title: String, day: String, month: String, backgroundColor: Color, modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier.height(100.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = backgroundColor)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(title, fontSize = 12.sp, color = Color.White.copy(alpha = 0.8f))
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(verticalAlignment = Alignment.Bottom) {
+                Text(day, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(month, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.White)
+            }
+        }
+    }
+}
+
+@Composable
+fun QuickActionCard(title: String, iconRes: Int, subtitle: String, modifier: Modifier = Modifier, onClick: () -> Unit = {}) {
     Card(
         modifier = modifier.clickable(onClick = onClick),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(modifier = Modifier.padding(16.dp)) {
             Box(
                 modifier = Modifier
-                    .size(56.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(Color(0xFFF3E5F5)),
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(
+                        when (title) {
+                            "Find Doctor" -> Color(0xFFE0F2F1)
+                            "Upload History" -> Color(0xFFF3E5F5)
+                            "Diet & Tips" -> Color(0xFFFFF3E0)
+                            else -> Color(0xFFE8F5E9)
+                        }
+                    ),
                 contentAlignment = Alignment.Center
             ) {
-                Image(painter = painterResource(id = iconRes), contentDescription = null, modifier = Modifier.size(32.dp))
+                Image(painter = painterResource(id = iconRes), contentDescription = null, modifier = Modifier.size(24.dp))
             }
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(title, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(title, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            Text(subtitle, fontSize = 10.sp, color = Color.Gray)
         }
     }
 }
@@ -267,16 +341,25 @@ fun ReportItem(title: String, date: String, status: String, iconRes: Int, navCon
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp)
-            .clickable { navController.navigate("report_details/$title") },
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+            .padding(vertical = 6.dp)
+            .clickable { navController.navigate("reportDetails/$title") },
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Image(painter = painterResource(id = iconRes), contentDescription = null, modifier = Modifier.size(40.dp))
+             Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFFF8F5FA)),
+                contentAlignment = Alignment.Center
+            ) {
+                 Image(painter = painterResource(id = iconRes), contentDescription = null, modifier = Modifier.size(20.dp))
+             }
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(title, fontWeight = FontWeight.Bold)
+                Text(title, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                 Text(date, fontSize = 12.sp, color = Color.Gray)
             }
             Text(
@@ -286,7 +369,7 @@ fun ReportItem(title: String, date: String, status: String, iconRes: Int, navCon
                     "approved" -> Color(0xFF388E3C)
                     else -> Color.Red
                 },
-                fontSize = 12.sp,
+                fontSize = 10.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier
                     .background(
@@ -300,7 +383,7 @@ fun ReportItem(title: String, date: String, status: String, iconRes: Int, navCon
                     .padding(horizontal = 8.dp, vertical = 4.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
-            Icon(Icons.AutoMirrored.Filled.ArrowForwardIos, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.Gray)
+            Icon(Icons.AutoMirrored.Filled.ArrowForwardIos, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.LightGray)
         }
     }
 }

@@ -69,7 +69,9 @@ fun BookAppointmentScreen(navController: NavController) {
                     }
                 },
                 actions = {
-                    IconButton(onClick = { navController.navigate(Screen.VoiceCall.createRoute("Dr. Priya Sharma")) }) {
+                    IconButton(onClick = { 
+                        navController.navigate(Screen.VoiceCall.createRoute("Dr. Priya Sharma")) 
+                    }) {
                         Icon(painterResource(id = R.drawable.call), contentDescription = "Call")
                     }
                 },
@@ -155,8 +157,8 @@ fun AppointmentSuccessDialog(navController: NavController) {
     }
     LaunchedEffect(Unit) {
         delay(3000)
-        navController.navigate(Screen.Home.route) {
-            popUpTo(Screen.Home.route) { inclusive = true }
+        navController.navigate(Screen.Dashboard.route) {
+            popUpTo(Screen.Dashboard.route) { inclusive = true }
         }
     }
 }

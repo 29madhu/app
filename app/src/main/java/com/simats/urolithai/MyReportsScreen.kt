@@ -189,7 +189,7 @@ fun ReportDetails(report: MyReport, navController: NavController) {
 
         // Diet Plan
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(painter = painterResource(id = R.drawable.food), contentDescription = "Diet Plan", tint = Color.Gray, modifier = Modifier.size(20.dp))
+            Icon(painter = painterResource(id = R.drawable.medicine), contentDescription = "Diet Plan", tint = Color.Gray, modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.width(8.dp))
             Text("Diet Plan", color = Color.Gray, fontWeight = FontWeight.Bold)
         }
@@ -201,8 +201,8 @@ fun ReportDetails(report: MyReport, navController: NavController) {
 
         // Action Buttons
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            ActionButton(icon = R.drawable.share, label = "Share", modifier = Modifier.weight(1f)) { navController.navigate(Screen.ShareReport.route) }
-            ActionButton(icon = R.drawable.download, label = "PDF", modifier = Modifier.weight(1f)) { /* TODO */ }
+            ActionButton(icon = R.drawable.think, label = "Share", modifier = Modifier.weight(1f)) { navController.navigate(Screen.ShareReport.route) }
+            ActionButton(icon = R.drawable.img_15, label = "PDF", modifier = Modifier.weight(1f)) { /* TODO */ }
             ActionButton(icon = R.drawable.reports, label = "Details", modifier = Modifier.weight(1f)) { /* TODO */ }
         }
     }
