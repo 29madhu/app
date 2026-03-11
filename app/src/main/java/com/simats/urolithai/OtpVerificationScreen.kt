@@ -1,39 +1,13 @@
 package com.simats.urolithai
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalTextStyle
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -42,29 +16,38 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.simats.urolithai.ui.theme.UroLithAITheme
+import com.simats.urolithai.network.RetrofitClient
+import com.simats.urolithai.network.VerifyOtpRequest
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OtpVerificationScreen(
     email: String,
     onNavigateBack: () -> Unit,
-    onVerifyAndRegister: () -> Unit
+    onOtpVerified: (String) -> Unit
 ) {
 
     val otpDigits = remember { mutableStateListOf("", "", "", "", "", "") }
     val focusRequesters = remember { List(6) { FocusRequester() } }
-    var ticks by remember { mutableStateOf(60) }
 
-    LaunchedEffect(key1 = ticks) {
+    var ticks by remember { mutableIntStateOf(60) }
+    var errorMessage by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val apiService = remember { RetrofitClient.getApiService(context) }
+
+    LaunchedEffect(ticks) {
         if (ticks > 0) {
             delay(1000)
             ticks--
@@ -74,20 +57,12 @@ fun OtpVerificationScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Create Account", fontWeight = FontWeight.Bold) },
+                title = { Text("Verify Email", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
-                },
-                actions = {
-                    Text(
-                        "Step 3/4",
-                        modifier = Modifier.padding(end = 16.dp),
-                        color = Color.Gray
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                }
             )
         },
         containerColor = Color(0xFFF8F5FA)
@@ -111,20 +86,22 @@ fun OtpVerificationScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text("Verify OTP", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+            Text(
+                "Verify OTP",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold
+            )
 
             Text(
                 text = "Enter the OTP sent to your email",
-                fontSize = 16.sp,
                 color = Color.Gray,
                 textAlign = TextAlign.Center
             )
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             Text(
                 text = email,
-                fontSize = 14.sp,
                 color = Color(0xFF6A1B9A),
                 fontWeight = FontWeight.Bold
             )
@@ -143,18 +120,16 @@ fun OtpVerificationScreen(
 
                                 otpDigits[index] = newValue
 
-                                if (newValue.isNotEmpty() && index < 5) {
+                                if (newValue.isNotEmpty() && index < 5)
                                     focusRequesters[index + 1].requestFocus()
-                                }
 
-                                else if (newValue.isEmpty() && index > 0) {
+                                if (newValue.isEmpty() && index > 0)
                                     focusRequesters[index - 1].requestFocus()
-                                }
                             }
                         },
-
                         modifier = Modifier
                             .weight(1f)
+                            .focusRequester(focusRequesters[index])
                             .onKeyEvent {
 
                                 if (it.key == Key.Backspace &&
@@ -163,79 +138,105 @@ fun OtpVerificationScreen(
                                 ) {
                                     focusRequesters[index - 1].requestFocus()
                                     true
-                                } else {
-                                    false
-                                }
-                            }
-                            .focusRequester(focusRequesters[index]),
-
+                                } else false
+                            },
                         textStyle = LocalTextStyle.current.copy(
                             textAlign = TextAlign.Center,
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Bold
                         ),
-
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-
-                        shape = RoundedCornerShape(12.dp),
-
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFF6A1B9A),
-                            unfocusedBorderColor = Color.LightGray,
-                            focusedContainerColor = Color.White,
-                            unfocusedContainerColor = Color.White
-                        )
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Number
+                        ),
+                        shape = RoundedCornerShape(12.dp)
                     )
                 }
             }
 
+            if (errorMessage.isNotEmpty()) {
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    text = errorMessage,
+                    color = Color.Red
+                )
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            if (ticks > 0) {
 
-                if (ticks > 0) {
+                Text(
+                    "Resend OTP in ${ticks}s",
+                    color = Color.Gray
+                )
 
-                    Text("Resend OTP in ", color = Color.Gray)
+            } else {
+
+                TextButton(onClick = { ticks = 60 }) {
 
                     Text(
-                        "${ticks}s",
-                        color = Color(0xFF6A1B9A),
-                        fontWeight = FontWeight.Bold
+                        "Resend OTP",
+                        color = Color(0xFF6A1B9A)
                     )
 
-                } else {
-
-                    TextButton(onClick = { ticks = 60 }) {
-
-                        Text(
-                            "Resend OTP",
-                            color = Color(0xFF6A1B9A),
-                            fontWeight = FontWeight.Bold
-                        )
-
-                    }
                 }
             }
 
             Spacer(modifier = Modifier.weight(1f))
 
             Button(
-                onClick = onVerifyAndRegister,
+                onClick = {
+
+                    val otp = otpDigits.joinToString("")
+
+                    if (otp.length != 6) {
+                        errorMessage = "Enter valid OTP"
+                        return@Button
+                    }
+
+                    isLoading = true
+                    errorMessage = ""
+
+                    scope.launch {
+
+                        try {
+
+                            val response = apiService.verifyOtp(
+                                VerifyOtpRequest(email, otp)
+                            )
+
+                            if (response.isSuccessful && response.body() != null) {
+
+                                val userId = response.body()!!.userId
+
+                                onOtpVerified(userId)
+
+                            } else {
+
+                                errorMessage = "Invalid OTP"
+                            }
+
+                        } catch (e: Exception) {
+
+                            errorMessage = "Server error"
+
+                        }
+
+                        isLoading = false
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
                 shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6A1B9A))
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF6A1B9A)
+                )
             ) {
 
-                Text(
-                    text = "Verify & Register",
-                    fontSize = 18.sp
-                )
+                Text(if (isLoading) "Verifying..." else "Verify OTP")
 
             }
 
@@ -245,18 +246,3 @@ fun OtpVerificationScreen(
 
 }
 
-@Preview(showBackground = true)
-@Composable
-fun OtpVerificationScreenPreview() {
-
-    UroLithAITheme {
-
-        OtpVerificationScreen(
-            email = "demo@gmail.com",
-            onNavigateBack = {},
-            onVerifyAndRegister = {}
-        )
-
-    }
-
-}

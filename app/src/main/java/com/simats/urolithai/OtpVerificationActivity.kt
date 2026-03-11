@@ -29,14 +29,14 @@ class OtpVerificationActivity : ComponentActivity() {
                         finish()
                     },
 
-                    onVerifyAndRegister = {
+                    onOtpVerified = { userId ->
 
                         val intent = Intent(this, AccountCreatedActivity::class.java)
                         intent.putExtra("role", role)
+                        intent.putExtra("userId", userId)
                         startActivity(intent)
 
                     }
-
                 )
             }
         }

@@ -1,318 +1,315 @@
 package com.simats.urolithai
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.*
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Upload
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.*
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import androidx.compose.ui.tooling.preview.Preview
+import com.simats.urolithai.network.RetrofitClient
 import com.simats.urolithai.ui.theme.UroLithAITheme
-import kotlinx.coroutines.delay
-import java.util.Calendar
+import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import java.io.File
+import java.io.FileOutputStream
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun BookAppointmentScreen(navController: NavController) {
-    var selectedDate by remember { mutableStateOf(1) }
-    var selectedTime by remember { mutableStateOf<String?>(null) }
-    var selectedConsultation by remember { mutableStateOf("Voice Call") }
-    var showSuccessDialog by remember { mutableStateOf(false) }
+fun BookAppointmentScreen(navController: NavController, doctorName: String?) {
+
+    var selectedReportType by remember { mutableStateOf("Ultrasound") }
+    val reportTypes = listOf("Ultrasound", "CT Scan", "X-Ray", "Blood Test")
+
+    var notes by remember { mutableStateOf("") }
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    var fileName by remember { mutableStateOf<String?>(null) }
+    var isUploading by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val apiService = remember { RetrofitClient.getApiService(context) }
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        selectedImageUri = uri
+        fileName = uri?.lastPathSegment
+    }
 
     Scaffold(
+
         topBar = {
-            CenterAlignedTopAppBar(
+            TopAppBar(
                 title = { Text("Book Appointment") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
                     }
-                },
-                actions = {
-                    IconButton(onClick = { 
-                        navController.navigate(Screen.VoiceCall.createRoute("Dr. Priya Sharma")) 
-                    }) {
-                        Icon(painterResource(id = R.drawable.call), contentDescription = "Call")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                }
             )
         },
+
         bottomBar = {
+
             Button(
-                onClick = { showSuccessDialog = true },
+                onClick = {
+
+                    selectedImageUri?.let { uri ->
+
+                        isUploading = true
+
+                        scope.launch {
+
+                            try {
+
+                                val file = File(context.cacheDir, "upload.jpg")
+
+                                context.contentResolver.openInputStream(uri)?.use { input ->
+                                    FileOutputStream(file).use { output ->
+                                        input.copyTo(output)
+                                    }
+                                }
+
+                                val requestFile =
+                                    file.asRequestBody("image/*".toMediaTypeOrNull())
+
+                                val body = MultipartBody.Part.createFormData(
+                                    "image",
+                                    file.name,
+                                    requestFile
+                                )
+
+                                val response = apiService.uploadReport(body)
+
+                                if (response.isSuccessful) {
+
+                                    navController.navigate(
+                                        "reportSent/${doctorName ?: "Doctor"}"
+                                    )
+
+                                } else {
+
+                                    errorMessage = "Upload failed"
+
+                                }
+
+                            } catch (e: Exception) {
+
+                                errorMessage = e.message
+
+                            } finally {
+
+                                isUploading = false
+
+                            }
+
+                        }
+                    }
+                },
+
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6A1B9A)),
-                shape = RoundedCornerShape(12.dp)
+                    .padding(16.dp)
+                    .height(56.dp),
+
+                enabled = selectedImageUri != null && !isUploading
             ) {
-                Text("Confirm Appointment", modifier = Modifier.padding(8.dp))
+
+                Text(if (isUploading) "Uploading..." else "Submit")
+
             }
+
         }
-    ) { paddingValues ->
+
+    ) { padding ->
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(padding)
+                .padding(16.dp)
         ) {
-            DoctorAppointmentCard()
-            ConsultationType(selectedConsultation) { selectedConsultation = it }
-            DateSelection(selectedDate) { selectedDate = it }
-            TimeSelection(selectedTime) { selectedTime = it }
-        }
-        if (showSuccessDialog) {
-            AppointmentSuccessDialog(navController = navController)
-        }
-    }
-}
 
-@Composable
-fun AppointmentSuccessDialog(navController: NavController) {
-    Dialog(onDismissRequest = { }) {
-        Card(
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White)
-        ) {
-            Column(
-                modifier = Modifier.padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+            Card(
+                modifier = Modifier.fillMaxWidth()
             ) {
+
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFFEDE7F6)),
+                        contentAlignment = Alignment.Center
+                    ) {
+
+                        Text("DR", fontWeight = FontWeight.Bold)
+
+                    }
+
+                    Spacer(Modifier.width(16.dp))
+
+                    Column {
+
+                        Text("Doctor")
+
+                        Text(
+                            doctorName ?: "Dr. Ravi Kumar",
+                            fontWeight = FontWeight.Bold
+                        )
+
+                    }
+
+                }
+
+            }
+
+            Spacer(Modifier.height(24.dp))
+
+            Text("Upload Medical Report", fontWeight = FontWeight.Bold)
+
+            Spacer(Modifier.height(8.dp))
+
+            if (selectedImageUri == null) {
+
                 Box(
                     modifier = Modifier
-                        .size(64.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFFE8F5E9)),
+                        .fillMaxWidth()
+                        .border(1.dp, Color.Gray, RoundedCornerShape(12.dp))
+                        .clickable { launcher.launch("image/*") }
+                        .padding(24.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.right),
-                        contentDescription = "Success",
-                        tint = Color(0xFF388E3C),
-                        modifier = Modifier.size(40.dp)
-                    )
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-                Text("Booked Successfully!", fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                Spacer(modifier = Modifier.height(8.dp))
-                Row {
-                    Text("Appointment with ")
-                    Text("Dr. Priya Sharma", fontWeight = FontWeight.Bold)
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-                Card(
-                    shape = RoundedCornerShape(8.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF3E5F5))
-                ) {
-                    Row(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
-                        Icon(painter = painterResource(id = R.drawable.book), contentDescription = null, tint = Color(0xFF6A1B9A))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Jan 15, 10:30 AM", color = Color(0xFF6A1B9A), fontWeight = FontWeight.Bold)
+
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
+                        Icon(Icons.Default.Upload, null)
+
+                        Text("Upload Report")
+
                     }
-                }
-            }
-        }
-    }
-    LaunchedEffect(Unit) {
-        delay(3000)
-        navController.navigate(Screen.Dashboard.route) {
-            popUpTo(Screen.Dashboard.route) { inclusive = true }
-        }
-    }
-}
 
-@Composable
-fun DoctorAppointmentCard() {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
-    ) {
-        Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(
+                }
+
+            } else {
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .border(1.dp, Color.LightGray, RoundedCornerShape(12.dp))
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+
+                    Icon(Icons.Default.Image, null)
+
+                    Spacer(Modifier.width(16.dp))
+
+                    Column(modifier = Modifier.weight(1f)) {
+
+                        Text(fileName ?: "Selected Image")
+
+                        Text("Ready to upload", fontSize = 12.sp)
+
+                    }
+
+                    IconButton(onClick = {
+
+                        selectedImageUri = null
+                        fileName = null
+
+                    }) {
+
+                        Icon(Icons.Default.Close, null)
+
+                    }
+
+                }
+
+            }
+
+            errorMessage?.let {
+
+                Spacer(Modifier.height(8.dp))
+
+                Text(it, color = Color.Red)
+
+            }
+
+            Spacer(Modifier.height(24.dp))
+
+            Text("Report Type", fontWeight = FontWeight.Bold)
+
+            Spacer(Modifier.height(8.dp))
+
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+
+                reportTypes.forEach { type ->
+
+                    FilterChip(
+                        selected = selectedReportType == type,
+                        onClick = { selectedReportType = type },
+                        label = { Text(type) }
+                    )
+
+                }
+
+            }
+
+            Spacer(Modifier.height(24.dp))
+
+            OutlinedTextField(
+                value = notes,
+                onValueChange = { notes = it },
+                label = { Text("Additional Notes") },
                 modifier = Modifier
-                    .size(56.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color(0xFFF3E5F5)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("PS", fontWeight = FontWeight.Bold, fontSize = 24.sp, color = Color(0xFF6A1B9A))
-            }
-            Spacer(modifier = Modifier.width(16.dp))
-            Column {
-                Text("Dr. Priya Sharma", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(painterResource(id = R.drawable.doctor), contentDescription = "Specialization", tint = Color.Gray, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("UROLOGIST • Kushaiguda", color = Color.Gray)
-                }
-                Text("₹500 Consultation Fee", fontWeight = FontWeight.Bold, color = Color(0xFF6A1B9A))
-            }
-        }
-    }
-}
-
-@Composable
-fun ConsultationType(selected: String, onSelect: (String) -> Unit) {
-    Column {
-        Text("Consultation Type", fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 8.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            ConsultationOption(
-                text = "Voice Call",
-                icon = R.drawable.call,
-                isSelected = selected == "Voice Call",
-                modifier = Modifier.weight(1f),
-                onClick = { onSelect("Voice Call") }
+                    .fillMaxWidth()
+                    .height(120.dp)
             )
-            ConsultationOption(
-                text = "Clinic Visit",
-                icon = R.drawable.location,
-                isSelected = selected == "Clinic Visit",
-                modifier = Modifier.weight(1f),
-                onClick = { onSelect("Clinic Visit") }
-            )
+
         }
-    }
-}
 
-@Composable
-fun ConsultationOption(text: String, icon: Int, isSelected: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    Card(
-        modifier = modifier.clickable { onClick() },
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = if (isSelected) Color(0xFFF3E5F5) else Color.White),
-        border = CardDefaults.outlinedCardBorder(enabled = isSelected)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Icon(painter = painterResource(id = icon), contentDescription = text, tint = if (isSelected) Color(0xFF6A1B9A) else Color.Gray, modifier = Modifier.size(32.dp))
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text, fontWeight = FontWeight.Bold, color = if (isSelected) Color(0xFF6A1B9A) else Color.Black)
-        }
-    }
-}
-
-@Composable
-fun DateSelection(selectedDate: Int, onDateSelected: (Int) -> Unit) {
-    val calendar = Calendar.getInstance()
-    val dates = (0..4).map {
-        calendar.add(Calendar.DAY_OF_YEAR, if (it == 0) 0 else 1)
-        calendar.clone() as Calendar
     }
 
-    Column {
-        Text("Select Date", fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 8.dp))
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            dates.forEachIndexed { index, date ->
-                DateBox(date = date, isSelected = selectedDate == index) { onDateSelected(index) }
-            }
-        }
-    }
-}
-
-@Composable
-fun DateBox(date: Calendar, isSelected: Boolean, onDateSelected: () -> Unit) {
-    val dayOfWeek = arrayOf("SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT")[date.get(Calendar.DAY_OF_WEEK) - 1]
-    val dayOfMonth = date.get(Calendar.DAY_OF_MONTH)
-
-    Card(
-        modifier = Modifier.clickable { onDateSelected() },
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = if (isSelected) Color(0xFF6A1B9A) else Color.White)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(dayOfWeek, color = if (isSelected) Color.White else Color.Gray, fontSize = 12.sp)
-            Text(dayOfMonth.toString(), color = if (isSelected) Color.White else Color.Black, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-        }
-    }
-}
-
-@Composable
-fun TimeSelection(selectedTime: String?, onTimeSelected: (String) -> Unit) {
-    val times = listOf("09:00 AM", "10:00 AM", "11:00 AM", "02:00 PM", "04:30 PM")
-    Column {
-        Text("Select Time", fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 8.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            times.take(3).forEach { time ->
-                TimeBox(time = time, isSelected = selectedTime == time, onTimeSelected = { onTimeSelected(time) }, modifier = Modifier.weight(1f))
-            }
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            times.takeLast(2).forEach { time ->
-                TimeBox(time = time, isSelected = selectedTime == time, onTimeSelected = { onTimeSelected(time) }, modifier = Modifier.weight(1f))
-            }
-        }
-    }
-}
-
-@Composable
-fun TimeBox(time: String, isSelected: Boolean, onTimeSelected: () -> Unit, modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .clip(RoundedCornerShape(8.dp))
-            .background(if (isSelected) Color(0xFFF3E5F5) else Color.White)
-            .border(1.dp, if(isSelected) Color(0xFF6A1B9A) else Color.LightGray, RoundedCornerShape(8.dp))
-            .clickable { onTimeSelected() }
-            .padding(12.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(time, color = if (isSelected) Color(0xFF6A1B9A) else Color.Black)
-    }
 }
 
 @Preview(showBackground = true)
 @Composable
-fun BookAppointmentScreenPreview() {
+fun BookAppointmentPreview() {
+
     UroLithAITheme {
-        BookAppointmentScreen(rememberNavController())
+
+        BookAppointmentScreen(
+            rememberNavController(),
+            "Dr. Ravi Kumar"
+        )
+
     }
+
 }

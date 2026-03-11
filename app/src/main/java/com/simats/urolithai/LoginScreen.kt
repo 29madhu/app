@@ -1,38 +1,15 @@
 package com.simats.urolithai
 
-import android.content.Context
 import android.content.Intent
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.Image
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,135 +17,283 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.simats.urolithai.ui.theme.UroLithAITheme
+import com.simats.urolithai.network.LoginRequest
+import com.simats.urolithai.network.RetrofitClient
+import com.simats.urolithai.network.TokenManager
+import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(
     onLoginSuccess: (String) -> Unit,
-    onForgotPassword: () -> Unit,
+    onForgotPassword: () -> Unit
 ) {
-    var selectedRole by remember { mutableStateOf("Patient") }
-    var userId by remember { mutableStateOf("PAT234567") }
-    var password by remember { mutableStateOf("gv5f6gybh") }
-    val context = LocalContext.current
 
-    Scaffold(containerColor = Color.White) { paddingValues ->
+    var selectedRole by remember { mutableStateOf("Patient") }
+    var userId by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+
+    var isLoading by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
+
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    val tokenManager = remember { TokenManager(context) }
+    val apiService = remember { RetrofitClient.getApiService(context) }
+
+    Scaffold(containerColor = Color.White) { padding ->
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(padding)
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(64.dp))
+
+            Spacer(Modifier.height(64.dp))
+
             Image(
                 painter = painterResource(id = R.drawable.welcome),
-                contentDescription = "UroLith AI Logo",
+                contentDescription = "Logo",
                 modifier = Modifier.size(80.dp)
             )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text("Welcome Back", fontSize = 24.sp, fontWeight = FontWeight.Bold)
-            Text("Secure access to your medical records", fontSize = 16.sp, color = Color.Gray)
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(Modifier.height(16.dp))
 
-            Box(modifier = Modifier.clip(RoundedCornerShape(16.dp)).background(Color(0xFFF7F2FA)).padding(16.dp)) {
+            Text(
+                "Welcome Back",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                "Secure access to your medical records",
+                fontSize = 16.sp,
+                color = Color.Gray
+            )
+
+            Spacer(Modifier.height(32.dp))
+
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color(0xFFF7F2FA))
+                    .padding(16.dp)
+            ) {
+
                 Column {
+
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(12.dp))
                             .background(Color.White)
-                            .padding(4.dp),
+                            .padding(4.dp)
                     ) {
-                        RoleToggleButton(text = "Patient", icon = R.drawable.human, isSelected = selectedRole == "Patient", modifier = Modifier.weight(1f)) { 
-                            selectedRole = "Patient" 
-                            userId = "PAT234567"
-                        }
-                        RoleToggleButton(text = "Doctor", icon = R.drawable.img_16, isSelected = selectedRole == "Doctor", modifier = Modifier.weight(1f)) { 
-                            selectedRole = "Doctor" 
-                            userId = "DOC123456"
-                        }
+
+                        RoleToggleButton(
+                            text = "Patient",
+                            icon = R.drawable.human,
+                            isSelected = selectedRole == "Patient",
+                            modifier = Modifier.weight(1f)
+                        ) { selectedRole = "Patient" }
+
+                        RoleToggleButton(
+                            text = "Doctor",
+                            icon = R.drawable.img_16,
+                            isSelected = selectedRole == "Doctor",
+                            modifier = Modifier.weight(1f)
+                        ) { selectedRole = "Doctor" }
                     }
-                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Spacer(Modifier.height(16.dp))
+
                     OutlinedTextField(
-                        value = userId, 
-                        onValueChange = { userId = it }, 
-                        label = { Text(if (selectedRole == "Patient") "Patient ID" else "Doctor ID") }, 
-                        modifier = Modifier.fillMaxWidth(), 
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xFF6A1B9A))
+                        value = userId,
+                        onValueChange = { userId = it },
+                        label = { Text("Patient / Doctor ID") },
+                        modifier = Modifier.fillMaxWidth()
                     )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    OutlinedTextField(value = password, onValueChange = { password = it }, label = { Text("Password") }, modifier = Modifier.fillMaxWidth(), visualTransformation = PasswordVisualTransformation(), colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xFF6A1B9A)))
-                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Spacer(Modifier.height(16.dp))
+
+                    OutlinedTextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        label = { Text("Password") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    if (errorMessage.isNotEmpty()) {
+                        Text(
+                            text = errorMessage,
+                            color = Color.Red,
+                            fontSize = 12.sp,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                    }
+
+                    Spacer(Modifier.height(16.dp))
+
                     Button(
-                        onClick = { onLoginSuccess(selectedRole) },
+                        onClick = {
+
+                            if (userId.isBlank()) {
+                                errorMessage = "Please enter ID"
+                                return@Button
+                            }
+
+                            if (password.isBlank()) {
+                                errorMessage = "Please enter password"
+                                return@Button
+                            }
+
+                            isLoading = true
+                            errorMessage = ""
+
+                            scope.launch {
+
+                                try {
+
+                                    val response =
+                                        apiService.login(
+                                            LoginRequest(userId, password)
+                                        )
+
+                                    if (response.isSuccessful && response.body() != null) {
+
+                                        val auth = response.body()!!
+
+                                        tokenManager.saveTokens(
+                                            auth.access,
+                                            auth.refresh
+                                        )
+
+                                        onLoginSuccess(selectedRole)
+
+                                    } else {
+
+                                        errorMessage = "Invalid ID or Password"
+
+                                    }
+
+                                } catch (e: Exception) {
+
+                                    errorMessage = "Server error"
+
+                                } finally {
+
+                                    isLoading = false
+
+                                }
+
+                            }
+
+                        },
+
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp),
+
                         shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6A1B9A))
+
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF6A1B9A)
+                        )
+
                     ) {
-                        Text(text = "Login", fontSize = 18.sp)
-                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
-                    }
-                }
-            }
-            
-            Spacer(modifier = Modifier.height(24.dp))
 
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
-                TextButton(onClick = onForgotPassword) { Text("Forgot Password?", color = Color.Gray) }
-                TextButton(onClick = { context.startActivity(Intent(context, CreateAccountActivity::class.java)) }) { 
+                        Text(if (isLoading) "Logging in..." else "Login")
+
+                        Spacer(Modifier.width(8.dp))
+
+                        Icon(
+                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                            contentDescription = null
+                        )
+
+                    }
+
+                }
+
+            }
+
+            Spacer(Modifier.height(24.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceAround
+            ) {
+
+                TextButton(onClick = onForgotPassword) {
+                    Text("Forgot Password?", color = Color.Gray)
+                }
+
+                TextButton(onClick = {
+
+                    context.startActivity(
+                        Intent(context, CreateAccountActivity::class.java)
+                    )
+
+                }) {
+
                     Row {
+
                         Text("New User? ", color = Color.Gray)
-                        Text("Register Here", color = Color(0xFF6A1B9A), fontWeight = FontWeight.Bold)
+
+                        Text(
+                            "Register Here",
+                            color = Color(0xFF6A1B9A),
+                            fontWeight = FontWeight.Bold
+                        )
+
                     }
+
                 }
+
             }
-            
-            Spacer(modifier = Modifier.weight(1f))
-            
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("Secure Medical Data Encryption + HIPAA Aligned", fontSize = 12.sp, color = Color.Gray)
-                Text("v1.0.2 • MADE IN INDIA", fontSize = 12.sp, color = Color.Gray, fontWeight = FontWeight.Bold)
-            }
+
         }
+
     }
+
 }
 
 @Composable
-fun RoleToggleButton(text: String, icon: Int, isSelected: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    Box(
+fun RoleToggleButton(
+    text: String,
+    icon: Int,
+    isSelected: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+
+    Column(
         modifier = modifier
-            .clip(RoundedCornerShape(8.dp))
-            .background(if (isSelected) Color(0xFFF3E5F5) else Color.Transparent)
-            .border(
-                width = if (isSelected) 1.dp else 0.dp,
-                color = if (isSelected) Color(0xFFD1C4E9) else Color.Transparent,
-                shape = RoundedCornerShape(8.dp)
-            )
-            .clickable(onClick = onClick)
-            .padding(vertical = 12.dp),
-        contentAlignment = Alignment.Center
+            .clip(RoundedCornerShape(10.dp))
+            .background(if (isSelected) Color(0xFFEDE7F6) else Color.Transparent)
+            .clickable { onClick() }
+            .padding(12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(painterResource(id = icon), contentDescription = text, tint = if (isSelected) Color(0xFF6A1B9A) else Color.Gray)
-            Spacer(modifier = Modifier.padding(4.dp))
-            Text(text, color = if (isSelected) Color(0xFF6A1B9A) else Color.Gray, fontWeight = if(isSelected) FontWeight.Bold else FontWeight.Normal)
-        }
-    }
-}
 
-@Preview(showBackground = true)
-@Composable
-fun LoginScreenPreview() {
-    UroLithAITheme {
-        LoginScreen(onLoginSuccess = {}, onForgotPassword = {})
+        Image(
+            painter = painterResource(icon),
+            contentDescription = text,
+            modifier = Modifier.size(24.dp)
+        )
+
+        Spacer(Modifier.height(4.dp))
+
+        Text(
+            text = text,
+            fontSize = 14.sp,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+        )
+
     }
+
 }

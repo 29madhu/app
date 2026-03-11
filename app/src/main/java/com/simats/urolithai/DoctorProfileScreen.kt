@@ -1,6 +1,5 @@
 package com.simats.urolithai
-
-import androidx.compose.foundation.Image
+import com.simats.urolithai.models.Doctor
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable

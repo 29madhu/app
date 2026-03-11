@@ -35,31 +35,57 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.rememberCoroutineScope
+import com.simats.urolithai.network.RetrofitClient
+import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import java.io.File
+import java.io.FileOutputStream
+import com.simats.urolithai.ui.theme.UroLithAITheme
+import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.*
+import androidx.compose.material3.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
+
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.simats.urolithai.ui.theme.UroLithAITheme
-
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.compose.ui.draw.clip
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun UploadReportScreen(navController: NavController, doctorName: String?) {
     var selectedReportType by remember { mutableStateOf("Ultrasound") }
     val reportTypes = listOf("Ultrasound", "CT Scan", "X-Ray", "Blood Test")
     var notes by remember { mutableStateOf("") }
-    var reportFile by remember { mutableStateOf<String?>(null) }
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    var fileName by remember { mutableStateOf<String?>(null) }
+    var isUploading by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val apiService = remember { RetrofitClient.getApiService(context) }
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        selectedImageUri = uri
+        fileName = uri?.lastPathSegment
+    }
 
     Scaffold(
         topBar = {
@@ -75,16 +101,45 @@ fun UploadReportScreen(navController: NavController, doctorName: String?) {
         },
         bottomBar = {
             Button(
-                onClick = { navController.navigate("report_sent/${doctorName}") },
+                onClick = { 
+                    selectedImageUri?.let { uri ->
+                        isUploading = true
+                        scope.launch {
+                            try {
+                                // Convert Uri to File (Helper needed for real apps, simplified here)
+                                val file = File(context.cacheDir, "upload_image.jpg")
+                                context.contentResolver.openInputStream(uri)?.use { input ->
+                                    FileOutputStream(file).use { output ->
+                                        input.copyTo(output)
+                                    }
+                                }
+
+                                val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
+                                val body = MultipartBody.Part.createFormData("image", file.name, requestFile)
+
+                                val response = apiService.uploadReport(body)
+                                if (response.isSuccessful) {
+                                    navController.navigate("reportSent/${doctorName ?: "Doctor"}")
+                                } else {
+                                    errorMessage = "Upload failed: ${response.message()}"
+                                }
+                            } catch (e: Exception) {
+                                errorMessage = "Error: ${e.localizedMessage}"
+                            } finally {
+                                isUploading = false
+                            }
+                        }
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp)
                     .height(56.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6A1B9A)),
-                enabled = reportFile != null
+                enabled = selectedImageUri != null && !isUploading
             ) {
-                Text(text = "Submit Report", fontSize = 18.sp)
+                Text(text = if (isUploading) "Uploading..." else "Submit Report", fontSize = 18.sp)
             }
         },
         containerColor = Color(0xFFF8F5FA)
@@ -122,7 +177,7 @@ fun UploadReportScreen(navController: NavController, doctorName: String?) {
             Text("Report File", fontWeight = FontWeight.Bold, fontSize = 16.sp)
             Spacer(modifier = Modifier.height(8.dp))
 
-            if (reportFile == null) {
+            if (selectedImageUri == null) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -133,7 +188,7 @@ fun UploadReportScreen(navController: NavController, doctorName: String?) {
                             color = Color.Gray,
                             shape = RoundedCornerShape(12.dp)
                         )
-                        .clickable { reportFile = "ultrasound_left_kidney.jpg" }
+                        .clickable { launcher.launch("image/*") }
                         .padding(vertical = 24.dp),
                     contentAlignment = Alignment.Center
                 ) {
@@ -152,14 +207,19 @@ fun UploadReportScreen(navController: NavController, doctorName: String?) {
                         Image(painter = painterResource(id = R.drawable.image), contentDescription = null, modifier = Modifier.size(40.dp))
                         Spacer(modifier = Modifier.size(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(reportFile!!, fontWeight = FontWeight.Bold)
-                            Text("2.4 MB • Image", color = Color.Gray, fontSize = 12.sp)
+                            Text(fileName ?: "Selected Image", fontWeight = FontWeight.Bold)
+                            Text("Image selected", color = Color.Gray, fontSize = 12.sp)
                         }
-                        IconButton(onClick = { reportFile = null }) {
+                        IconButton(onClick = { selectedImageUri = null; fileName = null }) {
                             Icon(Icons.Default.Close, contentDescription = "Remove")
                         }
                     }
                 }
+            }
+
+            if (errorMessage != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(errorMessage!!, color = Color.Red, fontSize = 12.sp)
             }
 
             Spacer(modifier = Modifier.height(24.dp))
